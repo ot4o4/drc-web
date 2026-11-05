@@ -631,7 +631,17 @@ img{object-fit:cover}
 .opay{font-size:11.5px;font-weight:700;margin:2px 0 0}
 .opay.ok{color:#0B7A3B}
 .opay.bad{color:#B3261E}
+.map-field{margin-bottom:4px}
+.map-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.map-top label{margin:0}
+.map-geo{background:#E7F5EC;color:#0B7A3B;border:1px solid #BFE3CC;border-radius:999px;padding:7px 11px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.map{height:225px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#EDE9DF}
+.map-hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.map-hint.ok{color:#0B7A3B;font-weight:700}
+.leaflet-container{font:inherit;z-index:0}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -933,15 +943,14 @@ img{object-fit:cover}
       <h4>📍 Adresse de livraison</h4>
       <div class="field" id="ck-name-field"><label>Nom complet</label><input id="ck-name" placeholder="Ex : Amadou Diop" autocomplete="name"><div class="msg">Indiquez votre nom complet</div></div>
       <div class="field" id="ck-phone-field"><label>Téléphone</label><input id="ck-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+221 77 000 00 00"><div class="msg">Numéro sénégalais invalide (ex : 77 123 45 67)</div></div>
-      <div class="field"><label>Quartier</label>
-        <select id="ck-zone">
-          <option>Plateau</option><option>Almadies</option><option>Ouakam</option>
-          <option>Grand Yoff</option><option selected>Mermoz</option><option>Sacré-Cœur</option>
-          <option>Point E</option><option>Fann</option><option>Pikine</option>
-          <option>Guédiawaye</option><option>Rufisque</option><option>Keur Massar</option>
-        </select>
+      <div class="field map-field">
+        <div class="map-top">
+          <label>Position de livraison</label>
+          <button type="button" class="map-geo" onclick="locateMe('ck')">📍 Ma position</button>
+        </div>
+        <div class="map" id="ck-map"></div>
+        <div class="map-hint" id="ck-map-hint">Touchez la carte à l'endroit exact de la livraison, ou utilisez « Ma position ».</div>
       </div>
-      <div class="field"><label>Repère / instructions</label><textarea id="ck-note" rows="2" placeholder="Ex : en face de la pharmacie, appeler à l'arrivée"></textarea></div>
     </div>
     <div class="form">
       <h4>🚚 Créneau de livraison</h4>
@@ -1981,6 +1990,89 @@ function removePromo(){
   toast('Code promo retiré');
 }
 
+/* ================== CARTE DE LIVRAISON ================== */
+const MAP_CENTER = [14.7167, -17.4677];
+const mapPicks = {};
+let pendingAddr = null;
+
+function ensureLeaflet(cb){
+  if (window.L) return cb();
+  let tries = 0;
+  const t = setInterval(()=>{
+    if (window.L){ clearInterval(t); cb(); }
+    else if (++tries > 60){ clearInterval(t); toast('Carte indisponible — vérifiez votre connexion'); }
+  }, 100);
+}
+function initMapPick(prefix, preset){
+  ensureLeaflet(()=>{
+    const el = document.getElementById(prefix + '-map');
+    if (!el) return;
+    if (mapPicks[prefix]){
+      mapPicks[prefix].invalidateSize();
+      if (preset && preset.lat) applyPick(prefix, preset.lat, preset.lng, preset.label || '', true);
+      return;
+    }
+    const map = L.map(el, {zoomControl:true}).setView(MAP_CENTER, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+    const marker = L.marker(MAP_CENTER, {draggable:true, autoPan:true}).addTo(map);
+    mapPicks[prefix] = map;
+    map._marker = marker;
+    map.on('click', e => applyPick(prefix, e.latlng.lat, e.latlng.lng, '', true));
+    marker.on('dragend', () => { const p = marker.getLatLng(); applyPick(prefix, p.lat, p.lng, '', true); });
+    if (preset && preset.lat) applyPick(prefix, preset.lat, preset.lng, preset.label || '', true);
+  });
+}
+function applyPick(prefix, lat, lng, label, reverse){
+  const map = mapPicks[prefix]; if (!map) return;
+  map._pick = {lat:lat, lng:lng};
+  map._marker.setLatLng([lat, lng]);
+  map.panTo([lat, lng]);
+  const hint = document.getElementById(prefix + '-map-hint');
+  if (label && hint){ map._label = label; hint.textContent = '📍 ' + label; hint.classList.add('ok'); }
+  if (reverse) reverseGeocode(prefix, lat, lng);
+}
+function reverseGeocode(prefix, lat, lng){
+  const map = mapPicks[prefix]; if (!map) return;
+  clearTimeout(map._rt);
+  const hint = document.getElementById(prefix + '-map-hint');
+  if (hint){ hint.textContent = 'Position : ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' — recherche de l\u2019adresse…'; hint.classList.add('ok'); }
+  map._rt = setTimeout(()=>{
+    fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&accept-language=fr&lat=' + lat + '&lon=' + lng)
+      .then(r => r.json())
+      .then(d => {
+        const a = (d && d.address) || {};
+        const zone = pickZone(a);
+        const label = (d && d.display_name) ? d.display_name.split(',').slice(0, 3).join(', ') : (lat.toFixed(5) + ', ' + lng.toFixed(5));
+        map._addr = {label:label, zone:zone};
+        if (hint) hint.textContent = '📍 ' + label + (zone ? ' · ' + zone : '');
+      })
+      .catch(()=>{ if (hint) hint.textContent = '📍 ' + lat.toFixed(5) + ', ' + lng.toFixed(5); });
+  }, 450);
+}
+function pickZone(a){
+  const hay = [a.suburb,a.neighbourhood,a.city_district,a.quarter,a.village,a.town,a.city].filter(Boolean).join(' ');
+  const H = hay.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const grid = [['plateau','Plateau'],['almadies','Almadies'],['ouakam','Ouakam'],['grand yoff','Grand Yoff'],['mermoz','Mermoz'],['sacre coeur','Sacré-Cœur'],['point e','Point E'],['fann','Fann'],['pikine','Pikine'],['guediawaye','Guédiawaye'],['rufisque','Rufisque'],['keur massar','Keur Massar']];
+  for (let i=0;i<grid.length;i++){ if (H.indexOf(grid[i][0]) !== -1) return grid[i][1]; }
+  return '';
+}
+function locateMe(prefix){
+  const hint = document.getElementById(prefix + '-map-hint');
+  if (!navigator.geolocation){ toast('Géolocalisation non disponible'); return; }
+  if (hint) hint.textContent = 'Localisation en cours…';
+  navigator.geolocation.getCurrentPosition(
+    p => applyPick(prefix, p.coords.latitude, p.coords.longitude, '', true),
+    () => { toast('Position introuvable — placez le point à la main'); if (hint) hint.textContent = 'Touchez la carte à l\u2019endroit exact de la livraison.'; },
+    {enableHighAccuracy:true, timeout:12000, maximumAge:0}
+  );
+}
+function currentPick(prefix){
+  const map = mapPicks[prefix];
+  if (!map || !map._pick) return null;
+  const a = map._addr || {};
+  return {lat:map._pick.lat, lng:map._pick.lng, zone:a.zone || '', address:a.label || map._label || ''};
+}
+
 /* ================== CHECKOUT ================== */
 function openCheckout(){
   if (!cart.length){ toast('Votre panier est vide'); return; }
@@ -1990,19 +2082,19 @@ function openCheckout(){
     if (!ph.value && authUser.phone) ph.value = authUser.phone;
     const addrs = Array.isArray(authUser.addresses) ? authUser.addresses : [];
     const def = addrs.find(a => a.is_default) || addrs[0];
-    if (def && def.zone){ const z = document.getElementById('ck-zone'); if (z) z.value = def.zone; }
+    if (def && def.lat && def.lng) pendingAddr = {lat:def.lat, lng:def.lng, label:def.address || def.details || ''};
   } else {
     const saved = lsGet(LS.addr, null) || {};
     const n = document.getElementById('ck-name'), ph = document.getElementById('ck-phone');
     if (!n.value && saved.name) n.value = saved.name;
     if (!ph.value && (saved.phone || rawGet(LS.phone))) ph.value = saved.phone || rawGet(LS.phone);
-    if (saved.zone){ const z = document.getElementById('ck-zone'); if (z) z.value = saved.zone; }
-    if (saved.note){ const t = document.getElementById('ck-note'); if (t) t.value = saved.note; }
+    if (saved.lat && saved.lng) pendingAddr = {lat:saved.lat, lng:saved.lng, label:saved.address || ''};
   }
   applyPayCaps();
   renderCheckoutSummary();
   openPage('page-checkout');
   observeReveals();
+  setTimeout(()=>initMapPick('ck', pendingAddr), 80);
 }
 function renderCheckoutSummary(){
   const fee = deliveryFee();
@@ -2090,7 +2182,7 @@ function showPayment(order, method, total){
   box.style.display = 'block';
 }
 
-function buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone){
+function buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone, geo){
   const items = cart.map(i=>({
     id:i.id, name:i.name,
     price: appliedPromo ? Math.round(i.price * (100 - PROMO.pct)/100) : i.price,
@@ -2098,7 +2190,8 @@ function buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone){
   }));
   return {
     items,
-    customer: {name, phone, zone, note, slot, pay_phone: payMethod !== 'cod' ? payPhone : ''},
+    customer: {name, phone, zone, note, slot, pay_phone: payMethod !== 'cod' ? payPhone : '',
+      address: (geo && geo.address) || '', lat: geo ? geo.lat : null, lng: geo ? geo.lng : null},
     payment_method: payMethod,
     promo_code: appliedPromo ? appliedPromo.code : ''
   };
@@ -2108,8 +2201,10 @@ async function confirmOrder(){
   const name = document.getElementById('ck-name').value.trim();
   const phone = normPhone(document.getElementById('ck-phone').value);
   setErr('ck-name-field', false); setErr('ck-phone-field', false); setErr('ck-payphone-field', false);
-  const zone = document.getElementById('ck-zone').value;
-  const note = document.getElementById('ck-note').value.trim();
+  const geo = currentPick('ck') || {};
+  const zone = geo.zone || 'Dakar';
+  const address = geo.address || (geo.lat ? (geo.lat.toFixed(5) + ', ' + geo.lng.toFixed(5)) : '');
+  const note = '';
   const payEl = document.querySelector('.pay.sel');
   const payMethod = payEl ? (payEl.dataset.method || 'cod') : 'cod';
   const slotEl = document.querySelector('.slot.sel');
@@ -2119,6 +2214,7 @@ async function confirmOrder(){
   if (name.length < 3){ setErr('ck-name-field', true); bad = true; }
   if (!phone){ setErr('ck-phone-field', true); bad = true; }
   if (payMethod !== 'cod' && !payPhone){ setErr('ck-payphone-field', true); bad = true; }
+  if (!geo.lat || !geo.lng){ toast('Placez votre position sur la carte'); bad = true; }
   if (!payEl || payEl.classList.contains('off')){ toast('Choisissez un moyen de paiement disponible'); bad = true; }
   if (bad){ toast('Vérifiez les champs en rouge'); return; }
 
@@ -2128,7 +2224,7 @@ async function confirmOrder(){
   const fee = deliveryFee();
   const disc = promoDiscount();
   const total = cartTotal() - disc + fee;
-  const payload = buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone);
+  const payload = buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone, geo);
 
   let order = null;
   if (apiOnline){
@@ -2147,7 +2243,7 @@ async function confirmOrder(){
 
   btn.classList.remove('loading');
   rawSet(LS.phone, phone);
-  lsSet(LS.addr, {name, phone, zone, note});
+  lsSet(LS.addr, {name, phone, zone, address, lat:geo.lat, lng:geo.lng});
   if (appliedPromo) lsSet(LS.promo, {phone, ts:Date.now()});
 
   const rec = {
@@ -2168,7 +2264,7 @@ async function confirmOrder(){
 
   document.getElementById('success-card').innerHTML = `
     <div class="orow"><span>N° de commande</span><b>${escHtml(order.id)}</b></div>
-    <div class="orow"><span>Livraison</span><b>${escHtml(zone)}, Dakar</b></div>
+    <div class="orow"><span>Livraison</span><b>${escHtml(address || zone)}</b></div>
     <div class="orow"><span>Paiement</span><b>${escHtml(payLabel)}</b></div>
     <div class="orow"><span>Total</span><b style="color:var(--price)">${fmt(order.total||total)} FCFA</b></div>
     ${queued ? '<div class="orow"><span>Statut</span><b style="color:#9A6B00">En attente d\u2019envoi</b></div>' : ''}`;

@@ -97,6 +97,7 @@
 .btn-ok.armed{background:#0B7A3B;color:#fff;border-color:#0B7A3B}
 .btn-plain{background:#F3F1EA;color:#3B423A;border:1px solid #DED9CC;padding:5px 9px;border-radius:8px;font-size:11px;font-weight:800}
 .refuse-reason{width:130px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;font-size:11.5px;background:#FBFAF5}
+.maplink{display:inline-block;margin-top:4px;font-size:11px;font-weight:800;color:#0B7A3B;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -268,7 +269,10 @@ async function loadOrders(){
       return '<tr>' +
         '<td><b>' + esc(o.id) + '</b><div class="muted">' + esc((o.payment_method === 'cod' ? 'Espèces' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money')) + '</div></td>' +
         '<td class="muted">' + esc(date) + '</td>' +
-        '<td><b>' + esc(c.name || '') + '</b><div class="muted">' + esc(c.phone || '') + '<br>' + esc(c.zone || '') + '</div></td>' +
+        '<td><b>' + esc(c.name || '') + '</b><div class="muted">' + esc(c.phone || '') + '<br>' + esc(c.zone || '') + '</div>' +
+          (c.address ? '<div class="muted" style="max-width:190px">📍 ' + esc(c.address) + '</div>' : '') +
+          (c.lat && c.lng ? '<a class="maplink" target="_blank" rel="noopener" href="https://www.google.com/maps?q=' + c.lat + ',' + c.lng + '">Carte ↗</a>' : '') +
+        '</td>' +
         '<td>' + items + '</td>' +
         '<td><b>' + fmt(o.total) + ' F</b></td>' +
         '<td>' + payCell(o) + '</td>' +
