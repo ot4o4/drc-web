@@ -1707,7 +1707,9 @@ function renderCats(){
   sweepReveals();
 }
 function productCard(p){
-  const tags = (p.tags || []).map(t=>`<span class="tag ${t[0]}">${escHtml(t[1])}</span>`).join('');
+  const tags = (p.tags || [])
+    .filter(t=>!/^-?\d+\s*%$/.test(String(t[1]||'').trim()))
+    .map(t=>`<span class="tag ${t[0]}">${escHtml(t[1])}</span>`).join('');
   const hasOld = Number(p.old) > Number(p.price);
   const out = Number(p.stock) <= 0;
   const src = thumb(p.img);
