@@ -94,6 +94,9 @@
 .btn-ok,.btn-no{padding:5px 9px;border-radius:8px;font-size:11px;font-weight:800;line-height:1.1;white-space:nowrap}
 .btn-ok{background:#E7F5EC;color:#0B7A3B;border:1px solid #BFE3CC}
 .btn-no{background:#FDECEA;color:#B3261E;border:1px solid #F5C6C0}
+.btn-ok.armed{background:#0B7A3B;color:#fff;border-color:#0B7A3B}
+.btn-plain{background:#F3F1EA;color:#3B423A;border:1px solid #DED9CC;padding:5px 9px;border-radius:8px;font-size:11px;font-weight:800}
+.refuse-reason{width:130px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;font-size:11.5px;background:#FBFAF5}
 </style>
 </head>
 <body>
@@ -284,35 +287,51 @@ function payInfo(o){
   return {label:'À vérifier', cls:'amber', can:true, reason:''};
 }
 function payCell(o){
-  const p = payInfo(o);
-  let h = '<span class="pill ' + p.cls + '">' + p.label + '</span>';
+  const p = payInfo(o), id = esc(o.id);
+  let h = '<div id="paycell-' + id + '">';
+  h += '<span class="pill ' + p.cls + '">' + p.label + '</span>';
   if (p.reason) h += '<div class="muted" style="max-width:140px;margin-top:3px">' + esc(p.reason) + '</div>';
   if (p.can) h += '<div class="payact">' +
-    '<button class="btn-ok" onclick="confirmPayment(\'' + esc(o.id) + '\')">✓ Reçu</button>' +
-    '<button class="btn-no" onclick="refusePayment(\'' + esc(o.id) + '\')">✕ Refuser</button></div>';
+    '<button class="btn-ok" id="ok-' + id + '" onclick="confirmPayment(\'' + id + '\')">✓ Reçu</button>' +
+    '<button class="btn-no" onclick="refusePayment(\'' + id + '\')">✕ Refuser</button></div>';
+  h += '</div>';
   return h;
 }
-async function confirmPayment(id){
-  if (!confirm('Confirmer que le paiement de ' + id + ' a bien été reçu ?')) return;
-  try {
-    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify({action:'confirm'})});
-    toast('Paiement confirmé · ' + id);
-    loadOrders(); loadStats();
-  } catch (e) {
-    toast(e.message === 'already_paid' ? 'Paiement déjà confirmé' : 'Confirmation impossible');
-    loadOrders();
+function confirmPayment(id){
+  const b = document.getElementById('ok-' + id);
+  if (!b) return;
+  if (b.dataset.arm !== '1'){
+    b.dataset.arm = '1'; b.textContent = 'Confirmer ?'; b.classList.add('armed');
+    b._t = setTimeout(function(){ if (b){ b.dataset.arm = ''; b.textContent = '✓ Reçu'; b.classList.remove('armed'); } }, 5000);
+    return;
   }
+  clearTimeout(b._t);
+  sendPayment(id, 'confirm');
 }
-async function refusePayment(id){
-  const reason = prompt('Motif du refus pour ' + id + ' ?', 'Paiement non reçu');
-  if (reason === null) return;
-  if (!confirm('Refuser le paiement de ' + id + ' ?\nLa commande sera annulée.')) return;
+function refusePayment(id){
+  const cell = document.getElementById('paycell-' + id);
+  if (!cell) return;
+  cell.innerHTML =
+    '<input class="refuse-reason" id="rr-' + id + '" placeholder="Motif du refus" value="Paiement non reçu">' +
+    '<div class="payact">' +
+      '<button class="btn-no" onclick="sendPayment(\'' + id + '\', \'refuse\')">Confirmer</button>' +
+      '<button class="btn-plain" onclick="loadOrders()">Annuler</button>' +
+    '</div>';
+  const i = document.getElementById('rr-' + id);
+  if (i){ i.focus(); i.select(); }
+}
+async function sendPayment(id, action){
+  const body = {action};
+  if (action === 'refuse'){
+    const i = document.getElementById('rr-' + id);
+    body.reason = i ? i.value : '';
+  }
   try {
-    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify({action:'refuse', reason})});
-    toast('Paiement refusé · ' + id);
+    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify(body)});
+    toast(action === 'confirm' ? 'Paiement confirmé · ' + id : 'Paiement refusé · ' + id);
     loadOrders(); loadStats();
   } catch (e) {
-    toast(e.message === 'already_paid' ? 'Déjà encaissé — refus impossible' : 'Refus impossible');
+    toast(e.message === 'already_paid' ? 'Paiement déjà encaissé' : 'Action impossible');
     loadOrders();
   }
 }
