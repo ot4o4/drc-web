@@ -90,6 +90,10 @@
   #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(12px);background:rgba(23,29,21,.95);color:#fff;
     font-size:12.5px;font-weight:600;padding:11px 17px;border-radius:999px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:90vw;text-align:center}
   #toast.show{opacity:1;transform:translateX(-50%)}
+.payact{display:flex;gap:5px;margin-top:6px}
+.btn-ok,.btn-no{padding:5px 9px;border-radius:8px;font-size:11px;font-weight:800;line-height:1.1;white-space:nowrap}
+.btn-ok{background:#E7F5EC;color:#0B7A3B;border:1px solid #BFE3CC}
+.btn-no{background:#FDECEA;color:#B3261E;border:1px solid #F5C6C0}
 </style>
 </head>
 <body>
@@ -131,7 +135,7 @@
     <section id="tab-orders" class="panel">
       <div class="panel-h"><h2>Commandes</h2><button class="small" onclick="loadOrders()">Actualiser</button></div>
       <div class="scroll"><table>
-        <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Statut</th></tr></thead>
+        <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Paiement</th><th>Statut</th></tr></thead>
         <tbody id="orders-body"></tbody>
       </table></div>
       <div class="empty hidden" id="orders-empty">Aucune commande pour l'instant.</div>
@@ -264,12 +268,53 @@ async function loadOrders(){
         '<td><b>' + esc(c.name || '') + '</b><div class="muted">' + esc(c.phone || '') + '<br>' + esc(c.zone || '') + '</div></td>' +
         '<td>' + items + '</td>' +
         '<td><b>' + fmt(o.total) + ' F</b></td>' +
+        '<td>' + payCell(o) + '</td>' +
         '<td><select class="status" onchange="setStatus(\'' + esc(o.id) + '\', this.value)">' +
           Object.keys(STATUS).map(k => '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + STATUS[k] + '</option>').join('') +
         '</select></td></tr>';
     }).join('');
     document.getElementById('orders-empty').classList.toggle('hidden', orders.length > 0);
   } catch (e) { if (e.message !== 'unauthorized') toast('Commandes indisponibles'); }
+}
+function payInfo(o){
+  const ps = o.payment_status || (o.status === 'paid' ? 'paid' : null);
+  if (ps === 'paid') return {label:'Encaissé', cls:'green', can:false, reason:''};
+  if (ps === 'refused') return {label:'Refusé', cls:'red', can:false, reason:o.payment_refusal_reason || ''};
+  if (o.payment_method === 'cod') return {label:'À la livraison', cls:'grey', can:true, reason:''};
+  return {label:'À vérifier', cls:'amber', can:true, reason:''};
+}
+function payCell(o){
+  const p = payInfo(o);
+  let h = '<span class="pill ' + p.cls + '">' + p.label + '</span>';
+  if (p.reason) h += '<div class="muted" style="max-width:140px;margin-top:3px">' + esc(p.reason) + '</div>';
+  if (p.can) h += '<div class="payact">' +
+    '<button class="btn-ok" onclick="confirmPayment(\'' + esc(o.id) + '\')">✓ Reçu</button>' +
+    '<button class="btn-no" onclick="refusePayment(\'' + esc(o.id) + '\')">✕ Refuser</button></div>';
+  return h;
+}
+async function confirmPayment(id){
+  if (!confirm('Confirmer que le paiement de ' + id + ' a bien été reçu ?')) return;
+  try {
+    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify({action:'confirm'})});
+    toast('Paiement confirmé · ' + id);
+    loadOrders(); loadStats();
+  } catch (e) {
+    toast(e.message === 'already_paid' ? 'Paiement déjà confirmé' : 'Confirmation impossible');
+    loadOrders();
+  }
+}
+async function refusePayment(id){
+  const reason = prompt('Motif du refus pour ' + id + ' ?', 'Paiement non reçu');
+  if (reason === null) return;
+  if (!confirm('Refuser le paiement de ' + id + ' ?\nLa commande sera annulée.')) return;
+  try {
+    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify({action:'refuse', reason})});
+    toast('Paiement refusé · ' + id);
+    loadOrders(); loadStats();
+  } catch (e) {
+    toast(e.message === 'already_paid' ? 'Déjà encaissé — refus impossible' : 'Refus impossible');
+    loadOrders();
+  }
 }
 async function setStatus(id, status){
   try {

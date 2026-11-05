@@ -628,6 +628,9 @@ a.menu-item{text-decoration:none;color:inherit}
 }
 /* Le poulet reste croustillant : images non déformées, jamais étirées */
 img{object-fit:cover}
+.opay{font-size:11.5px;font-weight:700;margin:2px 0 0}
+.opay.ok{color:#0B7A3B}
+.opay.bad{color:#B3261E}
 </style>
 </head>
 <body>
@@ -2232,6 +2235,8 @@ function renderOrders(){
         <span>${escHtml(o.id)} · ${escHtml(o.date||'')}</span>
         <span class="status ${statusClass(o.status)}">${statusLabel(o.status)}</span>
       </div>
+      ${o.payment_status === 'refused' ? `<div class="opay bad">Paiement refusé${o.payment_refusal_reason ? ' — ' + escHtml(o.payment_refusal_reason) : ''}</div>`
+        : o.payment_status === 'paid' ? '<div class="opay ok">Paiement confirmé</div>' : ''}
       <h4>${escHtml(orderItemsText(o))}</h4>
       <div class="ofoot">
         <b>${fmt(o.total)} FCFA</b>
