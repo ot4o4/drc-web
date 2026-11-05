@@ -98,6 +98,15 @@
 .btn-plain{background:#F3F1EA;color:#3B423A;border:1px solid #DED9CC;padding:5px 9px;border-radius:8px;font-size:11px;font-weight:800}
 .refuse-reason{width:130px;padding:5px 7px;border:1px solid var(--line);border-radius:8px;font-size:11.5px;background:#FBFAF5}
 .maplink{display:inline-block;margin-top:4px;font-size:11px;font-weight:800;color:#0B7A3B;text-decoration:underline}
+.olink{color:var(--green-deep);text-decoration:underline;cursor:pointer}
+.odet{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;font-size:12.5px;margin:8px 0 12px}
+.odet span{color:var(--muted)}
+.odet b{color:var(--ink);word-break:break-word}
+.odet a{color:var(--green);font-weight:800}
+.oitems{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:8px 0}
+.oitems div{display:flex;justify-content:space-between;padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line)}
+.oitems div:last-child{border-bottom:none}
+.otot{display:flex;justify-content:space-between;font-size:13.5px;font-weight:800;padding:4px 0}
 </style>
 </head>
 <body>
@@ -137,7 +146,7 @@
     </div>
 
     <section id="tab-orders" class="panel">
-      <div class="panel-h"><h2>Commandes</h2><button class="small" onclick="loadOrders()">Actualiser</button></div>
+      <div class="panel-h"><h2>Commandes</h2><button class="small" onclick="enableAlerts()">🔔 Alertes</button><button class="small" onclick="loadOrders()">Actualiser</button></div>
       <div class="scroll"><table>
         <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Paiement</th><th>Statut</th></tr></thead>
         <tbody id="orders-body"></tbody>
@@ -170,6 +179,10 @@
 
 <div class="overlay" id="user-overlay" onclick="if(event.target===this)closeUser()">
   <div class="sheet" id="user-sheet"></div>
+</div>
+
+<div class="overlay" id="order-overlay" onclick="if(event.target===this)closeOrder()">
+  <div class="sheet" id="order-sheet"></div>
 </div>
 
 <div id="toast"></div>
@@ -237,6 +250,7 @@ function logout(){
 /* ---------- démarrage ---------- */
 function start(){
   loadStats(); loadOrders(); loadProducts(); loadUsers();
+  startAlerts();
 }
 function showTab(name){
   ['orders','products','users'].forEach(t => {
@@ -261,13 +275,15 @@ async function loadOrders(){
   try {
     const d = await api('/api/admin/orders');
     const orders = (d.orders || []).slice().reverse();
+    ORDERS = orders;
+    if (!lastSeenOrder && orders.length) lastSeenOrder = orders[0].id;
     const body = document.getElementById('orders-body');
     body.innerHTML = orders.map(o => {
       const c = o.customer || {};
       const items = (o.items || []).map(i => i.qty + '× ' + esc(i.name)).join(', ');
       const date = (o.created_at || '').slice(0, 10);
       return '<tr>' +
-        '<td><b>' + esc(o.id) + '</b><div class="muted">' + esc((o.payment_method === 'cod' ? 'Espèces' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money')) + '</div></td>' +
+        '<td><b class="olink" onclick="openOrder(\'' + esc(o.id) + '\')">' + esc(o.id) + '</b><div class="muted">' + esc((o.payment_method === 'cod' ? 'Espèces' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money')) + '</div></td>' +
         '<td class="muted">' + esc(date) + '</td>' +
         '<td><b>' + esc(c.name || '') + '</b><div class="muted">' + esc(c.phone || '') + '<br>' + esc(c.zone || '') + '</div>' +
           (c.address ? '<div class="muted" style="max-width:190px">📍 ' + esc(c.address) + '</div>' : '') +
@@ -346,6 +362,100 @@ async function setStatus(id, status){
     loadStats();
   } catch (e) { toast('Mise à jour impossible'); loadOrders(); }
 }
+
+/* ---------- détail d'une commande ---------- */
+let ORDERS = [];
+let lastSeenOrder = null, alertsTimer = null;
+
+function fmtDate(iso){ try { return new Date(iso).toLocaleString('fr-FR'); } catch(e){ return iso || ''; } }
+function openOrder(id){
+  const o = ORDERS.find(x => x.id === id);
+  if (!o) return;
+  const c = o.customer || {};
+  const items = o.items || [];
+  const payLabel = o.payment_method === 'cod' ? 'Espèces à la livraison' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money';
+  const payStatus = o.payment_status === 'paid' ? 'Encaissé'
+    : o.payment_status === 'refused' ? 'Refusé'
+    : (o.payment_method === 'cod' ? 'À la livraison' : 'À vérifier');
+  const maps = (c.lat && c.lng) ? 'https://www.google.com/maps?q=' + c.lat + ',' + c.lng : '';
+  const itemsHtml = items.map(i => '<div><span>' + esc(i.qty) + '× ' + esc(i.name) +
+    (i.variant ? ' · ' + esc(i.variant) : '') + '</span><b>' + fmt((i.price || 0) * (i.qty || 1)) + ' F</b></div>').join('');
+  const html = '<div class="sheet-h"><h3>' + esc(o.id) + '</h3><button onclick="closeOrder()">Fermer</button></div>' +
+    '<div class="odet">' +
+      '<span>Reçue</span><b>' + esc(fmtDate(o.created_at)) + '</b>' +
+      '<span>Client</span><b>' + esc(c.name || '—') + '</b>' +
+      '<span>Téléphone</span><b>' + esc(c.phone || '—') + '</b>' +
+      (c.email ? '<span>Email</span><b>' + esc(c.email) + '</b>' : '') +
+      '<span>Quartier</span><b>' + esc(c.zone || '—') + '</b>' +
+      '<span>Adresse</span><b>' + esc(c.address || '—') + (maps ? ' · <a href="' + maps + '" target="_blank" rel="noopener">Carte ↗</a>' : '') + '</b>' +
+      (c.lat && c.lng ? '<span>Coordonnées</span><b>' + c.lat + ', ' + c.lng + '</b>' : '') +
+      (c.slot ? '<span>Créneau</span><b>' + esc(c.slot) + '</b>' : '') +
+      '<span>Paiement</span><b>' + esc(payLabel) + ' — ' + esc(payStatus) + '</b>' +
+      (c.pay_phone ? '<span>N° à débiter</span><b>' + esc(c.pay_phone) + '</b>' : '') +
+      (o.promo ? '<span>Code promo</span><b>' + esc(o.promo.code) + ' (−' + esc(o.promo.percent) + '%)</b>' : '') +
+      (c.note ? '<span>Note client</span><b>' + esc(c.note) + '</b>' : '') +
+    '</div>' +
+    '<div class="oitems">' + (itemsHtml || '<div><span>Aucun article</span></div>') + '</div>' +
+    '<div class="otot"><span>Sous-total</span><span>' + fmt(o.subtotal || 0) + ' F</span></div>' +
+    (o.discount ? '<div class="otot"><span>Remise</span><span>−' + fmt(o.discount) + ' F</span></div>' : '') +
+    '<div class="otot"><span>Livraison</span><span>' + fmt(o.delivery_fee || 0) + ' F</span></div>' +
+    '<div class="otot"><span>Total</span><span>' + fmt(o.total || 0) + ' F</span></div>';
+  document.getElementById('order-sheet').innerHTML = html;
+  document.getElementById('order-overlay').classList.add('open');
+}
+function closeOrder(){ document.getElementById('order-overlay').classList.remove('open'); }
+
+/* ---------- alerte d'une nouvelle commande ---------- */
+function beep(){
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx(), osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.16);
+    gain.gain.value = 0.07;
+    osc.connect(gain); gain.connect(ctx.destination); osc.start();
+    setTimeout(()=>{ try { osc.stop(); ctx.close(); } catch(e){} }, 400);
+  } catch(e){}
+}
+function notifyNewOrder(o){
+  const c = o.customer || {};
+  const title = 'Nouvelle commande ' + o.id;
+  const body = (c.name || '') + ' · ' + fmt(o.total || 0) + ' F · ' + (c.zone || 'Dakar');
+  toast(title);
+  beep();
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {body: body, icon: 'logo.png'});
+    }
+  } catch(e){}
+  document.title = '🔔 ' + title;
+}
+async function enableAlerts(){
+  if (!('Notification' in window)){ toast('Notifications non supportées par ce navigateur'); return; }
+  try {
+    const p = await Notification.requestPermission();
+    toast(p === 'granted' ? 'Alertes activées ✓' : 'Alertes refusées');
+  } catch(e){ toast('Alertes indisponibles'); }
+}
+function startAlerts(){
+  if (alertsTimer) return;
+  alertsTimer = setInterval(pollOrders, 30000);
+}
+async function pollOrders(){
+  try {
+    const d = await api('/api/admin/orders');
+    const list = d.orders || [];
+    if (!list.length) return;
+    const newest = list[list.length - 1];
+    if (lastSeenOrder && newest.id !== lastSeenOrder){
+      notifyNewOrder(newest);
+      loadOrders(); loadStats();
+    }
+    lastSeenOrder = newest.id;
+  } catch(e){}
+}
+window.addEventListener('focus', ()=>{ document.title = 'Espace gérant — Darou Rahmane Chicken'; });
 
 /* ---------- produits ---------- */
 async function loadProducts(){

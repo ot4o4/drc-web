@@ -2190,6 +2190,7 @@ function buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone, g
   return {
     items,
     customer: {name, phone, zone, note, slot, pay_phone: payMethod !== 'cod' ? payPhone : '',
+      email: (authUser && authUser.email) || '',
       address: (geo && geo.address) || '', lat: geo ? geo.lat : null, lng: geo ? geo.lng : null},
     payment_method: payMethod,
     promo_code: appliedPromo ? appliedPromo.code : ''
