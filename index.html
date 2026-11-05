@@ -830,8 +830,10 @@ img{object-fit:cover}
       <button class="btn solid" id="auth-submit" style="width:100%" onclick="submitAuth()">Se connecter</button>
       <div class="login-switch" id="auth-switch">Pas encore de compte ? <b onclick="authMode='register';renderAuthMode()">Créer un compte</b></div>
     </div>
-    <div class="login-or"><span>ou</span></div>
-    <button class="google-btn" onclick="googleLogin()"><span class="g-logo">G</span> Continuer avec Google</button>
+    <div id="google-wrap">
+      <div class="login-or"><span>ou</span></div>
+      <button class="google-btn" onclick="googleLogin()"><span class="g-logo">G</span> Continuer avec Google</button>
+    </div>
     <button class="btn outline" style="width:100%;margin-top:10px" onclick="closeLogin()">Continuer sans compte</button>
   </section>
 </div>
@@ -1167,6 +1169,9 @@ async function checkApi(){
       payCaps.cod = r.data.payments.cod !== false;
       applyPayCaps();
     }
+    /* Google n'est proposé que si le serveur a de vrais identifiants OAuth. */
+    const gwrap = document.getElementById('google-wrap');
+    if (gwrap) gwrap.classList.toggle('hidden', !(r.data && r.data.auth && r.data.auth.google));
     setNet(online ? 'online' : 'demo');
     netTries = 0;
     if (online){
