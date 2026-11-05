@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Bascule le site sur le domaine darourahmanechicken.sn une fois le DNS en place.
-# Usage : ./switch-domain.sh
+# Bascule le site sur son domaine définitif une fois le DNS en place.
+# Usage : ./switch-domain.sh [domaine]   (défaut : darourahmanechicken.com)
 set -euo pipefail
 
-DOMAIN="darourahmanechicken.sn"
+DOMAIN="${1:-darourahmanechicken.com}"
 OLD="darourahmane-chicken.onrender.com"
 SVC="srv-dbluinhsrm7s73efrr4g"
 cd "$(dirname "$0")"
