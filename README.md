@@ -43,9 +43,13 @@ git push origin main
 ./deploy.sh          # déclenche le déploiement Render et vérifie la mise en ligne
 ```
 
-`deploy.sh` lit la clé dans `~/.secrets/render_key`. Le déploiement
-automatique GitHub → Render n'est pas actif (application GitHub non installée
-sur le compte Render), d'où l'appel explicite à l'API de déploiement.
+`deploy.sh` lit la clé dans `~/.secrets/render_key`.
+
+Un déploiement automatique vérifie toutes les 5 minutes la tête de
+`ot4o4/drc-web` et redéploie dès qu'un commit apparaît (script
+`~/.hermes/scripts/drc_autodeploy.py`, qui gère aussi l'API avec
+sauvegarde/restauration de la base). GitHub Actions n'est pas utilisé car le
+jeton GitHub disponible n'a pas le scope `workflow`.
 
 ## Hébergement
 
