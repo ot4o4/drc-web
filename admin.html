@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Espace gérant — Darou Rahmane Chicken</title>
+<link rel="icon" href="favicon.ico">
+<style>
+  :root{
+    --green:#0B7A3B; --green-deep:#064A26; --green-soft:#E9F4EC;
+    --yellow:#FFC61A; --red:#D92D20; --cream:#F6F3EC; --surface:#fff;
+    --ink:#171D15; --ink-2:#39412F; --muted:#71785F; --line:#E8E2D2;
+    --r:14px; --sh:0 1px 2px rgba(23,29,21,.05),0 6px 18px rgba(23,29,21,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--cream);color:var(--ink);font-size:14px;line-height:1.45}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font:inherit;color:inherit}
+  .hidden{display:none!important}
+  a{color:inherit}
+
+  /* ---------- connexion ---------- */
+  #gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;
+    background:radial-gradient(120% 90% at 50% 0%,#0E8A45 0%,var(--green-deep) 70%)}
+  .gate-card{background:var(--surface);border-radius:22px;padding:26px 22px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+  .gate-logo{width:64px;height:64px;border-radius:50%;border:3px solid var(--yellow);display:block;margin:0 auto 12px}
+  .gate-card h1{font-size:18px;text-align:center;color:var(--green-deep)}
+  .gate-card p{font-size:12.5px;color:var(--muted);text-align:center;margin:6px 0 18px}
+  .gate-card label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin:12px 0 6px}
+  .gate-card input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:#FBFAF5;font-size:15px}
+  .gate-card input:focus{outline:none;border-color:var(--green)}
+  .gate-card button{width:100%;margin-top:16px;background:var(--green);color:#fff;font-weight:800;padding:13px;border-radius:12px}
+  .gate-msg{font-size:12px;color:var(--red);text-align:center;margin-top:10px;min-height:16px}
+
+  /* ---------- structure ---------- */
+  header.top{background:var(--green);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  header.top img{width:38px;height:38px;border-radius:50%;border:2px solid var(--yellow);background:#fff}
+  header.top .t{flex:1;min-width:180px}
+  header.top b{display:block;font-size:15px}
+  header.top small{font-size:11px;color:var(--yellow);letter-spacing:1.2px;text-transform:uppercase}
+  header.top a,header.top button{font-size:12px;font-weight:700;background:rgba(255,255,255,.14);padding:9px 13px;border-radius:999px;text-decoration:none}
+  main{max-width:1180px;margin:0 auto;padding:18px 14px 60px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;box-shadow:var(--sh)}
+  .stat small{display:block;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .stat b{font-size:22px;color:var(--green-deep)}
+  .tabs{display:flex;gap:6px;margin:6px 0 14px;flex-wrap:wrap}
+  .tab{padding:10px 16px;border-radius:999px;font-weight:800;font-size:13px;color:var(--ink-2);background:#EDE8DA}
+  .tab.on{background:var(--green);color:#fff}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .panel-h{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .panel-h h2{font-size:14.5px;color:var(--green-deep);flex:1}
+  .panel-h input[type=search]{padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:#FBFAF5;min-width:200px}
+  .panel-h button.small{font-size:12px;font-weight:700;padding:8px 12px;border-radius:999px;background:var(--green-soft);color:var(--green-deep)}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:11px 12px;border-bottom:1px solid #F1ECDF;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  td b{font-weight:700}
+  .muted{color:var(--muted);font-size:12px}
+  .pill{display:inline-block;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800}
+  .pill.green{background:var(--green-soft);color:var(--green-deep)}
+  .pill.amber{background:#FFF3D6;color:#8A5A00}
+  .pill.red{background:#FBE9EA;color:#9C1B12}
+  .pill.grey{background:#EFEBE0;color:#5E6650}
+  select.status{padding:7px 9px;border-radius:9px;border:1px solid var(--line);background:#FBFAF5;font-size:12px}
+  input.price,input.stock{width:90px;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#FBFAF5}
+  .btn-save{font-size:11.5px;font-weight:800;padding:7px 11px;border-radius:9px;background:var(--green);color:#fff}
+  .btn-ghost{font-size:11.5px;font-weight:700;padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:#FBFAF5}
+  .btn-danger{font-size:11.5px;font-weight:800;padding:7px 11px;border-radius:9px;background:#FBE9EA;color:#9C1B12}
+  .empty{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ---------- fiche client ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,24,20,.5);display:none;align-items:flex-start;justify-content:center;padding:24px 12px;z-index:50;overflow-y:auto}
+  .overlay.open{display:flex}
+  .sheet{background:var(--cream);border-radius:18px;width:100%;max-width:620px;padding:18px;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+  .sheet-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .sheet-h h3{font-size:17px;color:var(--green-deep)}
+  .sheet-h button{font-size:12px;color:var(--muted)}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 10px;font-size:13px;margin-bottom:14px}
+  .kv span{color:var(--muted)}
+  .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+  .box h4{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:8px}
+  .order-line{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .order-line:last-child{border-bottom:none}
+  .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .temp-pass{background:#0B7A3B;color:#fff;font-family:ui-monospace,monospace;font-size:18px;letter-spacing:2px;padding:12px;border-radius:10px;text-align:center;margin-top:8px;user-select:all}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(12px);background:rgba(23,29,21,.95);color:#fff;
+    font-size:12.5px;font-weight:600;padding:11px 17px;border-radius:999px;opacity:0;transition:.25s;z-index:99;pointer-events:none;max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <form class="gate-card" onsubmit="login(event)">
+    <img class="gate-logo" src="logo.png" alt="DRC">
+    <h1>Espace gérant</h1>
+    <p>Darou Rahmane Chicken · accès réservé</p>
+    <label for="code">Code gérant</label>
+    <input id="code" type="password" autocomplete="current-password" placeholder="••••••••" autofocus>
+    <button type="submit">Entrer</button>
+    <div class="gate-msg" id="gate-msg"></div>
+  </form>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <img src="logo-small.webp" alt="">
+    <div class="t"><b>Darou Rahmane Chicken</b><small>Espace gérant</small></div>
+    <a href="/" target="_blank" rel="noopener">Voir la boutique ↗</a>
+    <button onclick="logout()">Déconnexion</button>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat"><small>Commandes aujourd'hui</small><b id="st-today">–</b></div>
+      <div class="stat"><small>CA du jour</small><b id="st-rev">–</b></div>
+      <div class="stat"><small>À traiter</small><b id="st-pending">–</b></div>
+      <div class="stat"><small>Clients</small><b id="st-users">–</b></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="orders" onclick="showTab('orders')">Commandes</button>
+      <button class="tab" data-tab="products" onclick="showTab('products')">Produits</button>
+      <button class="tab" data-tab="users" onclick="showTab('users')">Clients</button>
+    </div>
+
+    <section id="tab-orders" class="panel">
+      <div class="panel-h"><h2>Commandes</h2><button class="small" onclick="loadOrders()">Actualiser</button></div>
+      <div class="scroll"><table>
+        <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Statut</th></tr></thead>
+        <tbody id="orders-body"></tbody>
+      </table></div>
+      <div class="empty hidden" id="orders-empty">Aucune commande pour l'instant.</div>
+    </section>
+
+    <section id="tab-products" class="panel hidden">
+      <div class="panel-h"><h2>Produits</h2><button class="small" onclick="loadProducts()">Actualiser</button></div>
+      <div class="scroll"><table>
+        <thead><tr><th>Produit</th><th>Prix (F)</th><th>Stock</th><th>Disponible</th><th></th></tr></thead>
+        <tbody id="products-body"></tbody>
+      </table></div>
+    </section>
+
+    <section id="tab-users" class="panel hidden">
+      <div class="panel-h">
+        <h2>Clients</h2>
+        <input type="search" id="user-q" placeholder="Nom, téléphone, email…" oninput="searchUsers(this.value)">
+        <button class="small" onclick="loadUsers()">Actualiser</button>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th>Client</th><th>Téléphone</th><th>Commandes</th><th>Total dépensé</th><th>Points</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="users-body"></tbody>
+      </table></div>
+      <div class="empty hidden" id="users-empty">Aucun client trouvé.</div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="user-overlay" onclick="if(event.target===this)closeUser()">
+  <div class="sheet" id="user-sheet"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'https://drc-api-dj8t.onrender.com';
+const KEY = 'drc_admin_session';
+const STATUS = {
+  pending:'Nouvelle', confirmed:'Confirmée', preparing:'En préparation', shipping:'En livraison',
+  delivered:'Livrée', paid:'Payée', cancelled:'Annulée',
+  awaiting_payment:'Paiement en attente', awaiting_payment_manual:'Paiement manuel', local_pending:'En attente'
+};
+const STATUS_CLASS = {delivered:'green', paid:'green', confirmed:'green', cancelled:'red', awaiting_payment:'amber', awaiting_payment_manual:'amber', shipping:'amber', preparing:'amber', pending:'grey'};
+
+let token = sessionStorage.getItem(KEY) || '';
+let USERS = [];
+let searchTimer = null;
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ return Number(n || 0).toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' '); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function hdr(extra){
+  return Object.assign({'X-Admin-Token': token, 'Content-Type': 'application/json'}, extra || {});
+}
+async function api(path, opts){
+  const res = await fetch(API + path, Object.assign({headers: hdr()}, opts || {}));
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (res.status === 401){ logout(); throw new Error('unauthorized'); }
+  if (!res.ok) throw new Error((data && data.error) || 'http_' + res.status);
+  return data;
+}
+
+/* ---------- connexion ---------- */
+async function login(ev){
+  ev.preventDefault();
+  const code = document.getElementById('code').value.trim();
+  const msg = document.getElementById('gate-msg');
+  msg.textContent = '';
+  if (!code){ msg.textContent = 'Entrez le code gérant'; return; }
+  token = code;
+  try {
+    await api('/api/admin/stats');
+    sessionStorage.setItem(KEY, code);
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    start();
+  } catch (e) {
+    token = '';
+    msg.textContent = e.message === 'unauthorized' ? 'Code incorrect' : 'Serveur injoignable — réessayez';
+  }
+}
+function logout(){
+  sessionStorage.removeItem(KEY);
+  token = '';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('gate').classList.remove('hidden');
+  document.getElementById('code').value = '';
+}
+
+/* ---------- démarrage ---------- */
+function start(){
+  loadStats(); loadOrders(); loadProducts(); loadUsers();
+}
+function showTab(name){
+  ['orders','products','users'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
+    document.querySelector('.tab[data-tab="' + t + '"]').classList.toggle('on', t === name);
+  });
+}
+
+/* ---------- stats ---------- */
+async function loadStats(){
+  try {
+    const s = await api('/api/admin/stats');
+    document.getElementById('st-today').textContent = s.today_orders;
+    document.getElementById('st-rev').textContent = fmt(s.today_revenue) + ' F';
+    document.getElementById('st-pending').textContent = s.pending;
+    document.getElementById('st-users').textContent = s.users != null ? s.users : '–';
+  } catch (e) { if (e.message !== 'unauthorized') toast('Statistiques indisponibles'); }
+}
+
+/* ---------- commandes ---------- */
+async function loadOrders(){
+  try {
+    const d = await api('/api/admin/orders');
+    const orders = (d.orders || []).slice().reverse();
+    const body = document.getElementById('orders-body');
+    body.innerHTML = orders.map(o => {
+      const c = o.customer || {};
+      const items = (o.items || []).map(i => i.qty + '× ' + esc(i.name)).join(', ');
+      const date = (o.created_at || '').slice(0, 10);
+      return '<tr>' +
+        '<td><b>' + esc(o.id) + '</b><div class="muted">' + esc((o.payment_method === 'cod' ? 'Espèces' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money')) + '</div></td>' +
+        '<td class="muted">' + esc(date) + '</td>' +
+        '<td><b>' + esc(c.name || '') + '</b><div class="muted">' + esc(c.phone || '') + '<br>' + esc(c.zone || '') + '</div></td>' +
+        '<td>' + items + '</td>' +
+        '<td><b>' + fmt(o.total) + ' F</b></td>' +
+        '<td><select class="status" onchange="setStatus(\'' + esc(o.id) + '\', this.value)">' +
+          Object.keys(STATUS).map(k => '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + STATUS[k] + '</option>').join('') +
+        '</select></td></tr>';
+    }).join('');
+    document.getElementById('orders-empty').classList.toggle('hidden', orders.length > 0);
+  } catch (e) { if (e.message !== 'unauthorized') toast('Commandes indisponibles'); }
+}
+async function setStatus(id, status){
+  try {
+    await api('/api/admin/orders/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({status})});
+    toast('Commande ' + id + ' → ' + (STATUS[status] || status));
+    loadStats();
+  } catch (e) { toast('Mise à jour impossible'); loadOrders(); }
+}
+
+/* ---------- produits ---------- */
+async function loadProducts(){
+  try {
+    const d = await api('/api/admin/products');
+    const body = document.getElementById('products-body');
+    body.innerHTML = (d.products || []).map(p => {
+      return '<tr>' +
+        '<td><b>' + esc(p.name) + '</b><div class="muted">' + esc(p.cat || '') + '</div></td>' +
+        '<td><input class="price" id="p-price-' + p.id + '" type="number" min="0" step="50" value="' + Number(p.price || 0) + '"></td>' +
+        '<td><input class="stock" id="p-stock-' + p.id + '" type="number" min="0" step="1" value="' + Number(p.stock || 0) + '"></td>' +
+        '<td><input type="checkbox" id="p-avail-' + p.id + '" style="width:18px;height:18px;accent-color:#0B7A3B"' + (p.available !== false ? ' checked' : '') + '></td>' +
+        '<td><button class="btn-save" onclick="saveProduct(' + p.id + ')">Enregistrer</button></td>' +
+        '</tr>';
+    }).join('');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Produits indisponibles'); }
+}
+async function saveProduct(id){
+  try {
+    const price = Number(document.getElementById('p-price-' + id).value);
+    const stock = Number(document.getElementById('p-stock-' + id).value);
+    const available = document.getElementById('p-avail-' + id).checked;
+    await api('/api/admin/products/' + id, {method:'PATCH', body: JSON.stringify({price, stock, available})});
+    toast('Produit enregistré');
+  } catch (e) { toast('Enregistrement impossible'); }
+}
+
+/* ---------- clients ---------- */
+async function loadUsers(q){
+  try {
+    const d = await api('/api/admin/users' + (q ? '?q=' + encodeURIComponent(q) : ''));
+    USERS = d.users || [];
+    const body = document.getElementById('users-body');
+    body.innerHTML = USERS.map(u => {
+      return '<tr>' +
+        '<td><b>' + esc(u.name) + '</b><div class="muted">' + esc(u.email || 'sans email') + '</div></td>' +
+        '<td>' + esc(u.phone) + '</td>' +
+        '<td>' + u.orders_count + '</td>' +
+        '<td>' + fmt(u.total_spent) + ' F</td>' +
+        '<td>' + u.points + '</td>' +
+        '<td><span class="pill ' + (u.status === 'disabled' ? 'red' : 'green') + '">' + (u.status === 'disabled' ? 'Désactivé' : 'Actif') + '</span></td>' +
+        '<td><button class="btn-ghost" onclick="openUser(\'' + esc(u.id) + '\')">Gérer</button></td>' +
+      '</tr>';
+    }).join('');
+    document.getElementById('users-empty').classList.toggle('hidden', USERS.length > 0);
+  } catch (e) { if (e.message !== 'unauthorized') toast('Clients indisponibles'); }
+}
+function searchUsers(q){
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadUsers(q.trim()), 260);
+}
+async function openUser(id){
+  try {
+    const d = await api('/api/admin/users/' + encodeURIComponent(id));
+    const u = d.user;
+    const orders = (u.orders || []).slice().reverse();
+    const addresses = u.addresses || [];
+    const sheet = document.getElementById('user-sheet');
+    sheet.innerHTML =
+      '<div class="sheet-h"><h3>' + esc(u.name) + '</h3><button onclick="closeUser()">Fermer ✕</button></div>' +
+      '<div class="kv">' +
+        '<span>Téléphone</span><div>' + esc(u.phone) + '</div>' +
+        '<span>Email</span><div>' + esc(u.email || '—') + '</div>' +
+        '<span>Inscrit le</span><div>' + esc((u.created_at || '').slice(0, 10) || '—') + '</div>' +
+        '<span>Dernière connexion</span><div>' + esc((u.last_login || '').slice(0, 16).replace('T', ' ') || '—') + '</div>' +
+        '<span>Statut</span><div><span class="pill ' + (u.status === 'disabled' ? 'red' : 'green') + '">' + (u.status === 'disabled' ? 'Désactivé' : 'Actif') + '</span></div>' +
+      '</div>' +
+      '<div class="box"><h4>Fidélité</h4>' +
+        '<div style="display:flex;gap:8px;align-items:center">' +
+          '<input class="stock" id="u-points" type="number" min="0" step="10" value="' + u.points + '" style="width:110px">' +
+          '<button class="btn-save" onclick="savePoints(\'' + esc(u.id) + '\')">Enregistrer les points</button>' +
+        '</div></div>' +
+      '<div class="box"><h4>Adresses (' + addresses.length + ')</h4>' +
+        (addresses.length ? addresses.map(a => '<div class="order-line"><span><b>' + esc(a.label) + '</b> · ' + esc(a.zone) + (a.details ? ' · ' + esc(a.details) : '') + '</span><span class="muted">' + (a.is_default ? 'défaut' : '') + '</span></div>').join('') : '<div class="muted">Aucune adresse</div>') +
+      '</div>' +
+      '<div class="box"><h4>Commandes (' + orders.length + ')</h4>' +
+        (orders.length ? orders.map(o => '<div class="order-line"><span>' + esc(o.id) + ' · ' + esc((o.created_at || '').slice(0, 10)) + ' · ' + esc(STATUS[o.status] || o.status) + '</span><b>' + fmt(o.total) + ' F</b></div>').join('') : '<div class="muted">Aucune commande</div>') +
+      '</div>' +
+      '<div class="row-actions">' +
+        '<button class="btn-danger" onclick="toggleUser(\'' + esc(u.id) + '\', \'' + (u.status === 'disabled' ? 'active' : 'disabled') + '\')">' + (u.status === 'disabled' ? 'Réactiver le compte' : 'Désactiver le compte') + '</button>' +
+        '<button class="btn-ghost" onclick="resetPassword(\'' + esc(u.id) + '\')">Réinitialiser le mot de passe</button>' +
+      '</div>' +
+      '<div id="temp-box"></div>';
+    document.getElementById('user-overlay').classList.add('open');
+  } catch (e) { toast('Fiche client indisponible'); }
+}
+function closeUser(){ document.getElementById('user-overlay').classList.remove('open'); }
+async function savePoints(id){
+  try {
+    const points = Number(document.getElementById('u-points').value);
+    await api('/api/admin/users/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({points})});
+    toast('Points enregistrés'); loadUsers(document.getElementById('user-q').value.trim());
+  } catch (e) { toast('Enregistrement impossible'); }
+}
+async function toggleUser(id, status){
+  if (!confirm(status === 'disabled' ? 'Désactiver ce compte ? Le client ne pourra plus se connecter.' : 'Réactiver ce compte ?')) return;
+  try {
+    await api('/api/admin/users/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({status})});
+    toast(status === 'disabled' ? 'Compte désactivé' : 'Compte réactivé');
+    openUser(id); loadUsers(document.getElementById('user-q').value.trim());
+  } catch (e) { toast('Opération impossible'); }
+}
+async function resetPassword(id){
+  if (!confirm('Générer un mot de passe temporaire ? Les sessions du client seront déconnectées.')) return;
+  try {
+    const d = await api('/api/admin/users/' + encodeURIComponent(id) + '/reset-password', {method:'POST'});
+    document.getElementById('temp-box').innerHTML =
+      '<div class="box" style="margin-top:12px"><h4>Mot de passe temporaire</h4>' +
+      '<div class="temp-pass">' + esc(d.password) + '</div>' +
+      '<div class="muted" style="margin-top:8px">À communiquer au client. Il pourra le changer depuis son compte.</div></div>';
+    toast('Mot de passe temporaire généré');
+  } catch (e) { toast('Réinitialisation impossible'); }
+}
+
+/* ---------- init ---------- */
+if (token){
+  api('/api/admin/stats').then(() => {
+    document.getElementById('gate').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    start();
+  }).catch(() => logout());
+}
+</script>
+</body>
+</html>

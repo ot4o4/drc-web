@@ -595,6 +595,20 @@ section{margin:22px 14px 0}
 }
 @media (prefers-reduced-motion:reduce){.skel{animation:none}}
 
+/* ---------- profil / adresses ---------- */
+.addr-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;margin-bottom:10px;box-shadow:var(--sh-1)}
+.addr-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.addr-head b{font-size:13.5px;color:var(--green-deep)}
+.addr-def{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--green);background:var(--green-soft);padding:3px 8px;border-radius:999px}
+.addr-body{font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.addr-body small{color:var(--muted)}
+.addr-actions{display:flex;gap:8px;margin-top:10px}
+.addr-actions button{font-size:11.5px;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2)}
+.addr-actions button.danger{color:var(--red);border-color:#F3C9C6;background:#FDF1F0}
+.addr-actions button.primary{color:#fff;background:var(--green);border-color:var(--green)}
+.acct-note{font-size:12px;color:var(--muted);line-height:1.5;margin:2px 0 12px}
+a.menu-item{text-decoration:none;color:inherit}
+
 /* ============================================================
    ADAPTATION WEB (site public) — desktop uniquement.
    Sur mobile, le rendu reste identique à l'application.
@@ -746,12 +760,15 @@ img{object-fit:cover}
     <div class="menu">
       <div class="menu-item" id="menu-auth" onclick="authAction()"><span class="mi">👤</span><span id="menu-auth-label">Se connecter / Créer un compte</span><span class="arr">›</span></div>
       <div class="menu-item" onclick="go('orders')"><span class="mi">📋</span>Mes commandes<span class="arr">›</span></div>
-      <div class="menu-item" onclick="addrInfo()"><span class="mi">📍</span>Mes adresses<span class="arr">›</span></div>
+      <div class="menu-item" onclick="openProfile()"><span class="mi">✏️</span>Modifier mon profil<span class="arr">›</span></div>
+      <div class="menu-item" onclick="openAddresses()"><span class="mi">📍</span>Mes adresses<span class="arr">›</span></div>
+      <div class="menu-item" onclick="openPassword()"><span class="mi">🔑</span>Changer mon mot de passe<span class="arr">›</span></div>
       <div class="menu-item" onclick="toast('Wave · Orange Money · Espèces à la livraison')"><span class="mi">💳</span>Moyens de paiement<span class="arr">›</span></div>
       <div class="menu-item" onclick="promoInfo()"><span class="mi">🎁</span>Mes promotions<span class="arr">›</span></div>
       <div class="menu-item" onclick="callShop()"><span class="mi">📞</span>Service client<span class="arr">›</span></div>
       <div class="menu-item" onclick="openPage('page-legal')"><span class="mi">🔒</span>Confidentialité & conditions<span class="arr">›</span></div>
       <div class="menu-item" onclick="aboutInfo()"><span class="mi">ℹ️</span>À propos de DRC<span class="arr">›</span></div>
+      <a class="menu-item" href="admin.html" target="_blank" rel="noopener"><span class="mi">🔐</span>Espace gérant<span class="arr">↗</span></a>
     </div>
     <div class="foot-banner wax contact-banner" style="background:linear-gradient(120deg,#8E1519,var(--red))" onclick="callShop()" role="button">
       <h3>Une question ? 📞 +221 70 917 09 20</h3>
@@ -835,6 +852,70 @@ img{object-fit:cover}
       <button class="google-btn" onclick="googleLogin()"><span class="g-logo">G</span> Continuer avec Google</button>
     </div>
     <button class="btn outline" style="width:100%;margin-top:10px" onclick="closeLogin()">Continuer sans compte</button>
+  </section>
+</div>
+
+<!-- ======================= PROFIL ======================= -->
+<div class="page" id="page-profile">
+  <div class="page-top">
+    <button class="back" onclick="closePage('page-profile')">‹</button>
+    <h2>Mon profil</h2>
+  </div>
+  <section style="margin-top:14px">
+    <div class="form">
+      <div class="field" id="pf-name-field"><label>Nom complet</label><input id="pf-name" autocomplete="name" placeholder="Ex : Amadou Diop"><div class="msg">Indiquez votre nom complet (3 caractères min.)</div></div>
+      <div class="field" id="pf-email-field"><label>Email (optionnel)</label><input id="pf-email" type="email" inputmode="email" autocomplete="email" placeholder="vous@exemple.com"><div class="msg">Adresse email invalide</div></div>
+      <div class="field"><label>Téléphone</label><input id="pf-phone" disabled><div class="msg">Le numéro identifie votre compte</div></div>
+      <p class="acct-note">Votre numéro sert à retrouver vos commandes. Pour le changer, contactez la boutique.</p>
+      <button class="btn solid" style="width:100%" onclick="saveProfile()">Enregistrer</button>
+    </div>
+  </section>
+</div>
+
+<!-- ======================= MOT DE PASSE ======================= -->
+<div class="page" id="page-password">
+  <div class="page-top">
+    <button class="back" onclick="closePage('page-password')">‹</button>
+    <h2>Mot de passe</h2>
+  </div>
+  <section style="margin-top:14px">
+    <div class="form">
+      <div class="field" id="pw-cur-field"><label>Mot de passe actuel</label><input id="pw-cur" type="password" autocomplete="current-password" placeholder="••••••"><div class="msg">Mot de passe incorrect</div></div>
+      <div class="field" id="pw-new-field"><label>Nouveau mot de passe</label><input id="pw-new" type="password" autocomplete="new-password" placeholder="6 caractères min."><div class="msg">6 caractères minimum</div></div>
+      <div class="field" id="pw-conf-field"><label>Confirmer le nouveau mot de passe</label><input id="pw-conf" type="password" autocomplete="new-password" placeholder="••••••"><div class="msg">Les deux mots de passe diffèrent</div></div>
+      <p class="acct-note">La modification déconnecte vos autres appareils.</p>
+      <button class="btn solid" style="width:100%" onclick="savePassword()">Changer le mot de passe</button>
+    </div>
+  </section>
+</div>
+
+<!-- ======================= ADRESSES ======================= -->
+<div class="page" id="page-addresses">
+  <div class="page-top">
+    <button class="back" onclick="closePage('page-addresses')">‹</button>
+    <h2>Mes adresses</h2>
+  </div>
+  <section style="margin-top:14px">
+    <div id="addr-list"></div>
+    <div class="form" style="margin-top:6px">
+      <h4 id="addr-form-title">Ajouter une adresse</h4>
+      <div class="field" id="ad-label-field"><label>Nom de l'adresse</label><input id="ad-label" placeholder="Maison, Bureau…" maxlength="30"><div class="msg">Donnez un nom court</div></div>
+      <div class="field" id="ad-zone-field"><label>Quartier</label>
+        <select id="ad-zone">
+          <option value="">Choisir…</option>
+          <option>Plateau</option><option>Almadies</option><option>Ouakam</option><option>Grand Yoff</option>
+          <option>Mermoz</option><option>Sacré-Cœur</option><option>Point E</option><option>Fann</option>
+          <option>Pikine</option><option>Guédiawaye</option><option>Rufisque</option><option>Keur Massar</option>
+        </select>
+        <div class="msg">Choisissez un quartier</div>
+      </div>
+      <div class="field"><label>Détails (rue, villa, repère)</label><input id="ad-details" placeholder="Rue 12, villa 3, près de la mosquée" maxlength="160"></div>
+      <div class="field" id="ad-phone-field"><label>Téléphone sur place (optionnel)</label><input id="ad-phone" type="tel" inputmode="tel" placeholder="+221 77 000 00 00"><div class="msg">Numéro sénégalais invalide</div></div>
+      <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:4px 0 12px">
+        <input type="checkbox" id="ad-default" style="width:18px;height:18px;accent-color:var(--green)"> Adresse par défaut
+      </label>
+      <button class="btn solid" style="width:100%" onclick="addAddress()">Ajouter cette adresse</button>
+    </div>
   </section>
 </div>
 
@@ -1904,6 +1985,9 @@ function openCheckout(){
     const n = document.getElementById('ck-name'), ph = document.getElementById('ck-phone');
     if (!n.value && authUser.name) n.value = authUser.name;
     if (!ph.value && authUser.phone) ph.value = authUser.phone;
+    const addrs = Array.isArray(authUser.addresses) ? authUser.addresses : [];
+    const def = addrs.find(a => a.is_default) || addrs[0];
+    if (def && def.zone){ const z = document.getElementById('ck-zone'); if (z) z.value = def.zone; }
   } else {
     const saved = lsGet(LS.addr, null) || {};
     const n = document.getElementById('ck-name'), ph = document.getElementById('ck-phone');
@@ -2230,6 +2314,147 @@ function hideSplash(){
 }
 window.addEventListener('load', ()=>setTimeout(hideSplash, 900));
 setTimeout(hideSplash, 3200);
+
+/* ================== COMPTE : PROFIL / MOT DE PASSE / ADRESSES ================== */
+function needAuth(){
+  if (authUser) return true;
+  toast('Connectez-vous pour accéder à votre compte');
+  openLogin('login');
+  return false;
+}
+function openProfile(){
+  if (!needAuth()) return;
+  const n = document.getElementById('pf-name'), e = document.getElementById('pf-email'), ph = document.getElementById('pf-phone');
+  n.value = authUser.name || ''; e.value = authUser.email || ''; ph.value = authUser.phone || '';
+  setErr('pf-name-field', false); setErr('pf-email-field', false);
+  openPage('page-profile');
+}
+async function saveProfile(){
+  const name = document.getElementById('pf-name').value.trim();
+  const email = document.getElementById('pf-email').value.trim();
+  setErr('pf-name-field', name.length < 3);
+  setErr('pf-email-field', false);
+  if (name.length < 3) return;
+  const r = await fetchJSON(API_BASE + '/api/auth/me', {
+    method: 'PATCH',
+    headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
+    body: JSON.stringify({name, email})
+  });
+  if (r.ok && r.data && r.data.user){
+    authUser = r.data.user; saveAuth(); refreshAccountUI();
+    closePage('page-profile'); toast('Profil mis à jour ✓');
+  } else if (r.status === 401){ clearAuth(); toast('Session expirée — reconnectez-vous'); }
+  else if (r.status === 400 && r.data && r.data.error === 'invalid_email'){ setErr('pf-email-field', true); }
+  else toast('Enregistrement impossible — réessayez');
+}
+function openPassword(){
+  if (!needAuth()) return;
+  ['pw-cur','pw-new','pw-conf'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['pw-cur-field','pw-new-field','pw-conf-field'].forEach(id => setErr(id, false));
+  openPage('page-password');
+}
+async function savePassword(){
+  const cur = document.getElementById('pw-cur').value;
+  const nw = document.getElementById('pw-new').value;
+  const cf = document.getElementById('pw-conf').value;
+  setErr('pw-cur-field', !cur);
+  setErr('pw-new-field', nw.length < 6);
+  setErr('pw-conf-field', nw !== cf || !cf);
+  if (!cur || nw.length < 6 || nw !== cf) return;
+  const r = await fetchJSON(API_BASE + '/api/auth/password', {
+    method: 'POST',
+    headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
+    body: JSON.stringify({current: cur, new: nw})
+  });
+  if (r.ok && r.data && r.data.token){
+    authToken = r.data.token; if (r.data.user) authUser = r.data.user;
+    saveAuth(); refreshAccountUI(); closePage('page-password');
+    toast('Mot de passe changé ✓');
+  } else if (r.status === 401){ setErr('pw-cur-field', true); }
+  else if (r.status === 429){ toast('Trop de tentatives — patientez quelques minutes'); }
+  else toast('Changement impossible — réessayez');
+}
+
+let ADDRESSES = [];
+function openAddresses(){
+  if (!needAuth()) return;
+  loadAddresses();
+  openPage('page-addresses');
+}
+async function loadAddresses(){
+  const r = await fetchJSON(API_BASE + '/api/addresses', {headers: authHeaders()}, 20000);
+  if (r.ok && r.data){ ADDRESSES = Array.isArray(r.data.addresses) ? r.data.addresses : []; }
+  else if (r.status === 401){ clearAuth(); toast('Session expirée — reconnectez-vous'); return; }
+  else { toast('Adresses indisponibles — réessayez'); return; }
+  if (authUser) authUser.addresses = ADDRESSES;
+  renderAddresses();
+}
+function renderAddresses(){
+  const el = document.getElementById('addr-list');
+  if (!el) return;
+  if (!ADDRESSES.length){
+    el.innerHTML = '<div class="acct-note" style="margin:0 0 14px">Aucune adresse enregistrée. Ajoutez votre première adresse de livraison ci-dessous.</div>';
+    return;
+  }
+  el.innerHTML = ADDRESSES.map(a => {
+    const id = String(a.id || '').replace(/'/g, '');
+    return '<div class="addr-card">' +
+      '<div class="addr-head"><b>' + escHtml(a.label || 'Adresse') + '</b>' +
+      (a.is_default ? '<span class="addr-def">Par défaut</span>' : '') + '</div>' +
+      '<div class="addr-body">' + escHtml(a.zone || '') + (a.details ? ' · ' + escHtml(a.details) : '') +
+      '<br><small>' + (a.phone ? escHtml(a.phone) : 'Téléphone du compte') + '</small></div>' +
+      '<div class="addr-actions">' +
+      (a.is_default ? '' : '<button class="primary" onclick="setDefaultAddress(\'' + id + '\')">Par défaut</button>') +
+      '<button class="danger" onclick="deleteAddress(\'' + id + '\')">Supprimer</button>' +
+      '</div></div>';
+  }).join('');
+}
+function clearAddressForm(){
+  ['ad-label','ad-details','ad-phone'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  const z = document.getElementById('ad-zone'); if (z) z.selectedIndex = 0;
+  const d = document.getElementById('ad-default'); if (d) d.checked = false;
+  ['ad-zone-field','ad-phone-field'].forEach(id => setErr(id, false));
+}
+async function addAddress(){
+  const label = document.getElementById('ad-label').value.trim();
+  const zone = document.getElementById('ad-zone').value;
+  const details = document.getElementById('ad-details').value.trim();
+  const phone = document.getElementById('ad-phone').value.trim();
+  const is_default = document.getElementById('ad-default').checked;
+  setErr('ad-zone-field', !zone);
+  setErr('ad-phone-field', false);
+  if (!zone) return;
+  const r = await fetchJSON(API_BASE + '/api/addresses', {
+    method: 'POST',
+    headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
+    body: JSON.stringify({label, zone, details, phone, is_default})
+  });
+  if (r.ok && r.data){
+    ADDRESSES = r.data.addresses || [];
+    if (authUser) authUser.addresses = ADDRESSES;
+    renderAddresses(); clearAddressForm(); toast('Adresse ajoutée ✓');
+  } else if (r.status === 401){ clearAuth(); toast('Session expirée'); }
+  else if (r.status === 400 && r.data && r.data.error === 'invalid_phone'){ setErr('ad-phone-field', true); }
+  else if (r.status === 400 && r.data && r.data.error === 'too_many_addresses'){ toast('8 adresses maximum'); }
+  else toast('Ajout impossible — réessayez');
+}
+async function setDefaultAddress(id){
+  const r = await fetchJSON(API_BASE + '/api/addresses/' + encodeURIComponent(id), {
+    method: 'PATCH',
+    headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
+    body: JSON.stringify({is_default: true})
+  });
+  if (r.ok && r.data){ ADDRESSES = r.data.addresses || ADDRESSES; if (authUser) authUser.addresses = ADDRESSES; renderAddresses(); toast('Adresse par défaut mise à jour ✓'); }
+  else toast('Modification impossible');
+}
+async function deleteAddress(id){
+  if (!confirm('Supprimer cette adresse ?')) return;
+  const r = await fetchJSON(API_BASE + '/api/addresses/' + encodeURIComponent(id), {
+    method: 'DELETE', headers: authHeaders()
+  });
+  if (r.ok && r.data){ ADDRESSES = r.data.addresses || []; if (authUser) authUser.addresses = ADDRESSES; renderAddresses(); toast('Adresse supprimée'); }
+  else toast('Suppression impossible');
+}
 
 /* ================== INIT ================== */
 loadCart(); loadOrders();
