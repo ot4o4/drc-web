@@ -2042,7 +2042,8 @@ function reverseGeocode(prefix, lat, lng){
       .then(d => {
         const a = (d && d.address) || {};
         const zone = pickZone(a);
-        const label = (d && d.display_name) ? d.display_name.split(',').slice(0, 3).join(', ') : (lat.toFixed(5) + ', ' + lng.toFixed(5));
+        const label = ((d && d.display_name) ? d.display_name.split(',').slice(0, 3).join(', ') : (lat.toFixed(5) + ', ' + lng.toFixed(5)))
+          .replace(/\s+/g, ' ').trim().slice(0, 120);
         map._addr = {label:label, zone:zone};
         if (hint) hint.textContent = '📍 ' + label + (zone ? ' · ' + zone : '');
       })
