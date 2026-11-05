@@ -762,12 +762,12 @@ img{object-fit:cover}
     </div>
     <div class="menu">
       <div class="menu-item" id="menu-auth" onclick="authAction()"><span class="mi">👤</span><span id="menu-auth-label">Se connecter / Créer un compte</span><span class="arr">›</span></div>
-      <div class="menu-item" onclick="go('orders')"><span class="mi">📋</span>Mes commandes<span class="arr">›</span></div>
-      <div class="menu-item" onclick="openProfile()"><span class="mi">✏️</span>Modifier mon profil<span class="arr">›</span></div>
-      <div class="menu-item" onclick="openAddresses()"><span class="mi">📍</span>Mes adresses<span class="arr">›</span></div>
-      <div class="menu-item" onclick="openPassword()"><span class="mi">🔑</span>Changer mon mot de passe<span class="arr">›</span></div>
-      <div class="menu-item" onclick="toast('Wave · Orange Money · Espèces à la livraison')"><span class="mi">💳</span>Moyens de paiement<span class="arr">›</span></div>
-      <div class="menu-item" onclick="promoInfo()"><span class="mi">🎁</span>Mes promotions<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="go('orders')"><span class="mi">📋</span>Mes commandes<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="openProfile()"><span class="mi">✏️</span>Modifier mon profil<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="openAddresses()"><span class="mi">📍</span>Mes adresses<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="openPassword()"><span class="mi">🔑</span>Changer mon mot de passe<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="toast('Wave · Orange Money · Espèces à la livraison')"><span class="mi">💳</span>Moyens de paiement<span class="arr">›</span></div>
+      <div class="menu-item auth-only" onclick="promoInfo()"><span class="mi">🎁</span>Mes promotions<span class="arr">›</span></div>
       <div class="menu-item" onclick="callShop()"><span class="mi">📞</span>Service client<span class="arr">›</span></div>
       <div class="menu-item" onclick="openPage('page-legal')"><span class="mi">🔒</span>Confidentialité & conditions<span class="arr">›</span></div>
       <div class="menu-item" onclick="aboutInfo()"><span class="mi">ℹ️</span>À propos de DRC<span class="arr">›</span></div>
@@ -1407,6 +1407,7 @@ function refreshAccountUI(){
     document.getElementById('acct-sub').textContent = 'Connectez-vous pour suivre vos commandes';
     document.getElementById('menu-auth-label').textContent = 'Se connecter / Créer un compte';
   }
+  document.querySelectorAll('.menu-item.auth-only').forEach(el=>el.classList.toggle('hidden', !authUser));
   const pts = document.getElementById('acct-pts');
   if (pts) pts.textContent = loyaltyPoints();
   const gt = document.getElementById('gift-title'), gs = document.getElementById('gift-sub');
@@ -1664,6 +1665,7 @@ function addrInfo(){
   toast('Dernière livraison : ' + a.zone + ', Dakar' + (a.note ? ' · ' + a.note : ''));
 }
 function promoInfo(){
+  if (!needAuth()) return;
   const used = promoUsedBy();
   if (used) toast('Code TERANGA déjà utilisé le ' + new Date(used.ts).toLocaleDateString('fr-FR'));
   else toast('Code TERANGA disponible : −' + PROMO.pct + '% sur votre 1ère commande');
