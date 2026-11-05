@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /data/
+Disallow: /*?*
+
+Sitemap: https://darourahmane-chicken.onrender.com/sitemap.xml
