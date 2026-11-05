@@ -913,16 +913,14 @@ img{object-fit:cover}
     <div class="form" style="margin-top:6px">
       <h4 id="addr-form-title">Ajouter une adresse</h4>
       <div class="field" id="ad-label-field"><label>Nom de l'adresse</label><input id="ad-label" placeholder="Maison, Bureau…" maxlength="30"><div class="msg">Donnez un nom court</div></div>
-      <div class="field" id="ad-zone-field"><label>Quartier</label>
-        <select id="ad-zone">
-          <option value="">Choisir…</option>
-          <option>Plateau</option><option>Almadies</option><option>Ouakam</option><option>Grand Yoff</option>
-          <option>Mermoz</option><option>Sacré-Cœur</option><option>Point E</option><option>Fann</option>
-          <option>Pikine</option><option>Guédiawaye</option><option>Rufisque</option><option>Keur Massar</option>
-        </select>
-        <div class="msg">Choisissez un quartier</div>
+      <div class="field map-field">
+        <div class="map-top">
+          <label>Position de livraison</label>
+          <button type="button" class="map-geo" onclick="locateMe('ad')">📍 Ma position</button>
+        </div>
+        <div class="map" id="ad-map"></div>
+        <div class="map-hint" id="ad-map-hint">Touchez la carte à l'endroit exact de la livraison.</div>
       </div>
-      <div class="field"><label>Détails (rue, villa, repère)</label><input id="ad-details" placeholder="Rue 12, villa 3, près de la mosquée" maxlength="160"></div>
       <div class="field" id="ad-phone-field"><label>Téléphone sur place (optionnel)</label><input id="ad-phone" type="tel" inputmode="tel" placeholder="+221 77 000 00 00"><div class="msg">Numéro sénégalais invalide</div></div>
       <label style="display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:4px 0 12px">
         <input type="checkbox" id="ad-default" style="width:18px;height:18px;accent-color:var(--green)"> Adresse par défaut
@@ -2482,6 +2480,7 @@ function openAddresses(){
   if (!needAuth()) return;
   loadAddresses();
   openPage('page-addresses');
+  setTimeout(()=>initMapPick('ad'), 80);
 }
 async function loadAddresses(){
   const r = await fetchJSON(API_BASE + '/api/addresses', {headers: authHeaders()}, 20000);
@@ -2512,24 +2511,27 @@ function renderAddresses(){
   }).join('');
 }
 function clearAddressForm(){
-  ['ad-label','ad-details','ad-phone'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
-  const z = document.getElementById('ad-zone'); if (z) z.selectedIndex = 0;
+  ['ad-label','ad-phone'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
   const d = document.getElementById('ad-default'); if (d) d.checked = false;
-  ['ad-zone-field','ad-phone-field'].forEach(id => setErr(id, false));
+  const m = mapPicks['ad'];
+  if (m){ m._pick = null; m._addr = null; m._marker.setLatLng(MAP_CENTER); }
+  const h = document.getElementById('ad-map-hint');
+  if (h){ h.textContent = 'Touchez la carte à l\u2019endroit exact de la livraison.'; h.classList.remove('ok'); }
+  setErr('ad-phone-field', false);
 }
 async function addAddress(){
   const label = document.getElementById('ad-label').value.trim();
-  const zone = document.getElementById('ad-zone').value;
-  const details = document.getElementById('ad-details').value.trim();
+  const geo = currentPick('ad') || {};
   const phone = document.getElementById('ad-phone').value.trim();
   const is_default = document.getElementById('ad-default').checked;
-  setErr('ad-zone-field', !zone);
   setErr('ad-phone-field', false);
-  if (!zone) return;
+  if (!geo.lat || !geo.lng){ toast('Placez la position sur la carte'); return; }
+  const zone = geo.zone || 'Dakar';
+  const details = geo.address || (geo.lat.toFixed(5) + ', ' + geo.lng.toFixed(5));
   const r = await fetchJSON(API_BASE + '/api/addresses', {
     method: 'POST',
     headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
-    body: JSON.stringify({label, zone, details, phone, is_default})
+    body: JSON.stringify({label, zone, details, lat: geo.lat, lng: geo.lng, phone, is_default})
   });
   if (r.ok && r.data){
     ADDRESSES = r.data.addresses || [];
