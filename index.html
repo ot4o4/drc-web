@@ -1183,12 +1183,7 @@ async function checkApi(){
   }
 }
 
-const PRICE_OVERRIDES = {
-  1:{price:4500, old:0, unit:'la pièce (~1,7 kg)'},
-  2:{price:5000, old:0, unit:'le kg'},
-  3:{price:4900, old:0, unit:'le kg'},
-  9:{price:2750, old:0, unit:'le kg'}
-};
+/* Prix : la base du serveur fait foi (espace gérant → produits). */
 const HIDDEN_IDS = [4, 7];   /* Ailes de poulet, Escalopes — masqués pour l'instant */
 async function loadProducts(){
   if (!apiOnline) return;
@@ -1205,10 +1200,6 @@ async function loadProducts(){
         unit:sp.unit||lp.unit, rating:sp.rating||lp.rating, sold:sp.sold??lp.sold, stock:sp.stock??lp.stock,
         tags:sp.tags||lp.tags, variants:sp.variants||lp.variants, desc:sp.desc||lp.desc, img});
       else PRODUCTS.push(Object.assign({tags:[], variants:[], old:sp.price, rating:5, sold:0, stock:0, desc:''}, sp, {img}));
-    });
-    Object.keys(PRICE_OVERRIDES).forEach(id=>{
-      const lp = PRODUCTS.find(p=>p.id === Number(id));
-      if (lp) Object.assign(lp, PRICE_OVERRIDES[id]);
     });
     for (let i = PRODUCTS.length - 1; i >= 0; i--){
       const sp = j.products.find(x=>x.id === PRODUCTS[i].id);
