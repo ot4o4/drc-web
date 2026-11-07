@@ -107,6 +107,7 @@
 .oitems div{display:flex;justify-content:space-between;padding:8px 10px;font-size:12.5px;border-bottom:1px solid var(--line)}
 .oitems div:last-child{border-bottom:none}
 .otot{display:flex;justify-content:space-between;font-size:13.5px;font-weight:800;padding:4px 0}
+.driver-form{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}.driver-form label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.driver-form input,.chat-compose textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#FBFAF5}.chat-messages{display:flex;flex-direction:column;gap:7px;max-height:240px;overflow-y:auto;margin-bottom:10px}.chat-message{max-width:88%;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:#FBFAF5;overflow-wrap:anywhere}.chat-message.admin{align-self:flex-end;background:var(--green-soft)}.chat-message small{display:block;color:var(--muted);font-size:9px}.chat-message p{font-size:12px;white-space:pre-wrap}.chat-compose{display:flex;gap:8px}.chat-compose textarea{min-height:42px;resize:vertical}@media(max-width:560px){.driver-form{grid-template-columns:1fr}.kv,.odet{grid-template-columns:100px 1fr}}
 </style>
 </head>
 <body>
@@ -188,7 +189,7 @@
 <div id="toast"></div>
 
 <script>
-const API = 'https://drc-api-dj8t.onrender.com';
+const API = (localStorage.getItem('drc_api') || 'https://drc-api-dj8t.onrender.com').replace(/\/+$/,'');
 const KEY = 'drc_admin_session';
 const STATUS = {
   pending:'Nouvelle', confirmed:'Confirmée', preparing:'En préparation', shipping:'En livraison',
@@ -212,10 +213,11 @@ function hdr(extra){
   return Object.assign({'X-Admin-Token': token, 'Content-Type': 'application/json'}, extra || {});
 }
 async function api(path, opts){
-  const res = await fetch(API + path, Object.assign({headers: hdr()}, opts || {}));
+  const options=Object.assign({},opts||{});options.headers=Object.assign(hdr(),options.headers||{});
+  const res = await fetch(API + path, options);
   let data = null;
   try { data = await res.json(); } catch (e) {}
-  if (res.status === 401){ logout(); throw new Error('unauthorized'); }
+  if (res.status === 401 || res.status === 403){ logout(); throw new Error('unauthorized'); }
   if (!res.ok) throw new Error((data && data.error) || 'http_' + res.status);
   return data;
 }
@@ -300,7 +302,7 @@ async function loadOrders(){
   } catch (e) { if (e.message !== 'unauthorized') toast('Commandes indisponibles'); }
 }
 function payInfo(o){
-  const ps = o.payment_status || (o.status === 'paid' ? 'paid' : null);
+  const ps = o.payment_confirmed ? 'paid' : (o.payment_status || (o.status === 'paid' ? 'paid' : null));
   if (ps === 'paid') return {label:'Encaissé', cls:'green', can:false, reason:''};
   if (ps === 'refused') return {label:'Refusé', cls:'red', can:false, reason:o.payment_refusal_reason || ''};
   if (o.payment_method === 'cod') return {label:'À la livraison', cls:'grey', can:true, reason:''};
@@ -347,8 +349,8 @@ async function sendPayment(id, action){
     body.reason = i ? i.value : '';
   }
   try {
-    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify(body)});
-    toast(action === 'confirm' ? 'Paiement confirmé · ' + id : 'Paiement refusé · ' + id);
+    await api('/api/admin/orders/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({payment_confirmed:action === 'confirm'})});
+    toast(action === 'confirm' ? 'Paiement confirmé · ' + id : 'Confirmation de paiement retirée · ' + id);
     loadOrders(); loadStats();
   } catch (e) {
     toast(e.message === 'already_paid' ? 'Paiement déjà encaissé' : 'Action impossible');
@@ -374,7 +376,7 @@ function openOrder(id){
   const c = o.customer || {};
   const items = o.items || [];
   const payLabel = o.payment_method === 'cod' ? 'Espèces à la livraison' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money';
-  const payStatus = o.payment_status === 'paid' ? 'Encaissé'
+  const payStatus = o.payment_confirmed || o.payment_status === 'paid' ? 'Encaissé'
     : o.payment_status === 'refused' ? 'Refusé'
     : (o.payment_method === 'cod' ? 'À la livraison' : 'À vérifier');
   const maps = (c.lat && c.lng) ? 'https://www.google.com/maps?q=' + c.lat + ',' + c.lng : '';
@@ -399,11 +401,39 @@ function openOrder(id){
     '<div class="otot"><span>Sous-total</span><span>' + fmt(o.subtotal || 0) + ' F</span></div>' +
     (o.discount ? '<div class="otot"><span>Remise</span><span>−' + fmt(o.discount) + ' F</span></div>' : '') +
     '<div class="otot"><span>Livraison</span><span>' + fmt(o.delivery_fee || 0) + ' F</span></div>' +
-    '<div class="otot"><span>Total</span><span>' + fmt(o.total || 0) + ' F</span></div>';
+    '<div class="otot"><span>Total</span><span>' + fmt(o.total || 0) + ' F</span></div>' +
+    '<div class="box"><h4>Livreur attribué</h4><div class="driver-form"><div><label for="driver-id">Identifiant</label><input id="driver-id" value="' + esc(o.driver && o.driver.id || 'driver-1') + '" placeholder="driver-1"></div><div><label for="driver-name">Nom</label><input id="driver-name" value="' + esc(o.driver && o.driver.name || '') + '" placeholder="Nom du livreur"></div><div><label for="driver-phone">Téléphone</label><input id="driver-phone" type="tel" value="' + esc(o.driver && o.driver.phone || '') + '" placeholder="+221…"></div><button class="btn-save" onclick="assignDriver(\'' + esc(o.id) + '\')">Attribuer</button></div></div>' +
+    '<div class="box" id="admin-chat"><h4>Conversation client / livreur</h4><div class="chat-messages" id="admin-chat-messages" role="log" aria-live="polite"></div><div class="chat-compose"><textarea id="admin-chat-input" maxlength="1000" aria-label="Réponse du gérant" placeholder="Répondre au client…"></textarea><button class="btn-save" onclick="sendAdminMessage(\'' + esc(o.id) + '\')">Envoyer</button></div></div>';
   document.getElementById('order-sheet').innerHTML = html;
   document.getElementById('order-overlay').classList.add('open');
+  startAdminChat(o.id);
 }
-function closeOrder(){ document.getElementById('order-overlay').classList.remove('open'); }
+async function assignDriver(id){
+  const name=document.getElementById('driver-name').value.trim(),phone=document.getElementById('driver-phone').value.trim(),driverId=document.getElementById('driver-id').value.trim();
+  if(!driverId||name.length<2||phone.length<5){toast('Identifiant, nom et téléphone du livreur requis');return}
+  try{
+    const response=await api('/api/admin/orders/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({driver:{id:driverId,name,phone}})});
+    const updated=response.order||response;
+    const order=ORDERS.find(o=>o.id===id);if(order)order.driver=updated.driver;
+    toast('Livreur attribué · '+name);loadOrders();
+  }catch(e){toast('Attribution impossible')}
+}
+let adminChatPoll=null,adminChatId=null,adminChatBusy=false;
+function startAdminChat(id){clearInterval(adminChatPoll);adminChatId=id;loadAdminMessages(id);adminChatPoll=setInterval(()=>loadAdminMessages(id),4000)}
+async function loadAdminMessages(id){
+  if(adminChatBusy||adminChatId!==id)return;adminChatBusy=true;
+  try{
+    const messages=await api('/api/orders/'+encodeURIComponent(id)+'/messages');if(adminChatId!==id)return;
+    const box=document.getElementById('admin-chat-messages');if(!box)return;box.innerHTML='';
+    if(!messages.length){box.innerHTML='<div class="muted">Aucun message pour cette commande.</div>';return}
+    messages.forEach(m=>{const item=document.createElement('div');item.className='chat-message '+(m.sender_role==='admin'?'admin':'');const meta=document.createElement('small');meta.textContent=m.sender_role+' · '+m.sender_name;const text=document.createElement('p');text.textContent=m.text;item.append(meta,text);box.appendChild(item)});box.scrollTop=box.scrollHeight;
+  }catch(e){}finally{adminChatBusy=false}
+}
+async function sendAdminMessage(id){
+  const input=document.getElementById('admin-chat-input'),text=input.value.trim();if(!text){toast('Écrivez un message');return}
+  try{await api('/api/orders/'+encodeURIComponent(id)+'/messages',{method:'POST',headers:{'X-Message-Role':'admin'},body:JSON.stringify({text})});input.value='';await loadAdminMessages(id)}catch(e){toast('Message non envoyé')}
+}
+function closeOrder(){clearInterval(adminChatPoll);adminChatPoll=null;adminChatId=null;document.getElementById('order-overlay').classList.remove('open');}
 
 /* ---------- alerte d'une nouvelle commande ---------- */
 function beep(){
