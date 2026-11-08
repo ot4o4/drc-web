@@ -34,14 +34,13 @@ EOF
 echo "→ Publication"
 git add -A
 git -c user.email="papis@darourahmane.sn" -c user.name="Papis Thiam" commit -q -m "domaine: bascule sur $DOMAIN" || echo "  (rien à committer)"
-GT="$(cat /root/.secrets/github_token)"
-git push "https://x-access-token:${GT}@github.com/ot4o4/drc-web.git" main
+git push origin main
 
 echo "→ Déploiement + vérification"
-python3 /root/.hermes/scripts/drc_autodeploy.py
+echo "  déploiement automatique Render au push (GitHub App) — attente 60 s"; sleep 60
 
 echo "→ Statut du domaine sur Render"
-RK="$(cat /root/.secrets/render_key)"
+RK="$(cat "$HOME/.secrets/render_key")"
 curl -s -H "Authorization: Bearer $RK" "https://api.render.com/v1/services/$SVC/custom-domains" |
   python3 -c "import sys,json;[print('  ', x['customDomain']['name'], x['customDomain']['verificationStatus']) for x in json.load(sys.stdin)]"
 

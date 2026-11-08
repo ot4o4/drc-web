@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Déploie le site web Darou Rahmane Chicken sur Render et vérifie la mise en ligne.
-# Usage : ./deploy.sh   (depuis /root/drc-web, après git push)
+# Usage : ./deploy.sh   (depuis ~/drc-web, après git commit)
 set -euo pipefail
 
 SERVICE_ID="srv-dbluinhsrm7s73efrr4g"

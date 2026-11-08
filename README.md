@@ -36,7 +36,7 @@ depuis le site : **Compte → Espace gérant → Serveur de l'app**.
 ## Mettre à jour le site
 
 ```bash
-cd /root/drc-web
+cd ~/drc-web
 # modifier index.html ou les images
 git add -A && git commit -m "…"
 git push origin main
