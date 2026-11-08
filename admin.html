@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Espace gérant — Darou Rahmane Chicken</title>
-<link rel="icon" href="favicon.ico">
+<link rel="icon" href="/favicon.ico">
 <style>
   :root{
     --green:#0B7A3B; --green-deep:#064A26; --green-soft:#E9F4EC;
@@ -108,13 +108,31 @@
 .oitems div:last-child{border-bottom:none}
 .otot{display:flex;justify-content:space-between;font-size:13.5px;font-weight:800;padding:4px 0}
 .driver-form{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}.driver-form label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.driver-form input,.chat-compose textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#FBFAF5}.chat-messages{display:flex;flex-direction:column;gap:7px;max-height:240px;overflow-y:auto;margin-bottom:10px}.chat-message{max-width:88%;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:#FBFAF5;overflow-wrap:anywhere}.chat-message.admin{align-self:flex-end;background:var(--green-soft)}.chat-message small{display:block;color:var(--muted);font-size:9px}.chat-message p{font-size:12px;white-space:pre-wrap}.chat-compose{display:flex;gap:8px}.chat-compose textarea{min-height:42px;resize:vertical}@media(max-width:560px){.driver-form{grid-template-columns:1fr}.kv,.odet{grid-template-columns:100px 1fr}}
+.drv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:14px}
+.drv-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:#FBFAF5}
+.drv-card.off{opacity:.6}
+.drv-card h3{font-size:14px;color:var(--green-deep);display:flex;align-items:center;gap:6px;justify-content:space-between}
+.drv-code{display:flex;align-items:center;gap:8px;margin:10px 0 8px;background:#fff;border:1px dashed var(--green);border-radius:10px;padding:8px 10px;flex-wrap:wrap}
+.drv-code code{flex:1;min-width:150px;font-family:ui-monospace,monospace;font-size:16px;letter-spacing:1.5px;color:var(--green-deep);user-select:all}
+.drv-add{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;padding:14px;border-bottom:1px solid var(--line);align-items:end}
+.drv-add label,.drv-edit label{display:block;font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:4px;text-transform:uppercase}
+.drv-add input,.drv-edit input,.assign-row select{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;background:#FBFAF5}
+.drv-edit{display:grid;gap:8px;margin-top:10px}
+.drv-help{padding:12px 14px;font-size:12.5px;color:var(--ink-2);background:var(--green-soft);border-bottom:1px solid var(--line);line-height:1.55}
+.drv-help a{color:var(--green-deep);font-weight:800}
+.assign-row{display:flex;gap:8px;align-items:center}
+.assign-row select{flex:1}
+.drv-tag{display:block;margin-top:5px;font-size:11px;font-weight:700;color:var(--green-deep)}
+.drv-tag.todo{color:#8A5A00}
+.btn-ghost.armed{background:#9C1B12;color:#fff;border-color:#9C1B12}
+@media(max-width:560px){.drv-add{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
 <div id="gate">
   <form class="gate-card" onsubmit="login(event)">
-    <img class="gate-logo" src="logo.png" alt="DRC">
+    <img class="gate-logo" src="/logo.png" alt="DRC">
     <h1>Espace gérant</h1>
     <p>Darou Rahmane Chicken · accès réservé</p>
     <label for="code">Code gérant</label>
@@ -126,7 +144,7 @@
 
 <div id="app" class="hidden">
   <header class="top">
-    <img src="logo-small.webp" alt="">
+    <img src="/logo-small.webp" alt="">
     <div class="t"><b>Darou Rahmane Chicken</b><small>Espace gérant</small></div>
     <a href="/" target="_blank" rel="noopener">Voir la boutique ↗</a>
     <button onclick="logout()">Déconnexion</button>
@@ -137,6 +155,7 @@
       <div class="stat"><small>Commandes aujourd'hui</small><b id="st-today">–</b></div>
       <div class="stat"><small>CA du jour</small><b id="st-rev">–</b></div>
       <div class="stat"><small>À traiter</small><b id="st-pending">–</b></div>
+      <div class="stat"><small>À attribuer</small><b id="st-assign">–</b></div>
       <div class="stat"><small>Clients</small><b id="st-users">–</b></div>
     </div>
 
@@ -144,6 +163,7 @@
       <button class="tab on" data-tab="orders" onclick="showTab('orders')">Commandes</button>
       <button class="tab" data-tab="products" onclick="showTab('products')">Produits</button>
       <button class="tab" data-tab="users" onclick="showTab('users')">Clients</button>
+      <button class="tab" data-tab="drivers" onclick="showTab('drivers')">Livreurs</button>
     </div>
 
     <section id="tab-orders" class="panel">
@@ -174,6 +194,18 @@
         <tbody id="users-body"></tbody>
       </table></div>
       <div class="empty hidden" id="users-empty">Aucun client trouvé.</div>
+    </section>
+
+    <section id="tab-drivers" class="panel hidden">
+      <div class="panel-h"><h2>Livreurs</h2><button class="small" onclick="loadDrivers()">Actualiser</button></div>
+      <div class="drv-help">Chaque livreur ouvre <a href="/livreur/" target="_blank" rel="noopener">darourahmane-chicken.onrender.com/livreur</a> et se connecte avec <b>son code</b>. Il ne voit que les commandes que vous lui attribuez (fiche de la commande → Livreur).</div>
+      <form class="drv-add" onsubmit="addDriver(event)">
+        <div><label for="drv-name">Nom du livreur</label><input id="drv-name" placeholder="Ex. Modou Fall" maxlength="80" autocomplete="off"></div>
+        <div><label for="drv-phone">Téléphone</label><input id="drv-phone" type="tel" placeholder="+221 77 000 00 00" maxlength="30" autocomplete="off"></div>
+        <button class="btn-save" type="submit">Ajouter un livreur</button>
+      </form>
+      <div class="drv-grid" id="drivers-grid"></div>
+      <div class="empty hidden" id="drivers-empty">Aucun livreur pour l'instant.</div>
     </section>
   </main>
 </div>
@@ -251,11 +283,11 @@ function logout(){
 
 /* ---------- démarrage ---------- */
 function start(){
-  loadStats(); loadOrders(); loadProducts(); loadUsers();
+  loadStats(); loadOrders(); loadProducts(); loadUsers(); loadDrivers();
   startAlerts();
 }
 function showTab(name){
-  ['orders','products','users'].forEach(t => {
+  ['orders','products','users','drivers'].forEach(t => {
     document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
     document.querySelector('.tab[data-tab="' + t + '"]').classList.toggle('on', t === name);
   });
@@ -269,6 +301,7 @@ async function loadStats(){
     document.getElementById('st-rev').textContent = fmt(s.today_revenue) + ' F';
     document.getElementById('st-pending').textContent = s.pending;
     document.getElementById('st-users').textContent = s.users != null ? s.users : '–';
+    document.getElementById('st-assign').textContent = s.to_assign != null ? s.to_assign : '–';
   } catch (e) { if (e.message !== 'unauthorized') toast('Statistiques indisponibles'); }
 }
 
@@ -296,7 +329,7 @@ async function loadOrders(){
         '<td>' + payCell(o) + '</td>' +
         '<td><select class="status" onchange="setStatus(\'' + esc(o.id) + '\', this.value)">' +
           Object.keys(STATUS).map(k => '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + STATUS[k] + '</option>').join('') +
-        '</select></td></tr>';
+        '</select>' + driverTag(o) + '</td></tr>';
     }).join('');
     document.getElementById('orders-empty').classList.toggle('hidden', orders.length > 0);
   } catch (e) { if (e.message !== 'unauthorized') toast('Commandes indisponibles'); }
@@ -305,6 +338,7 @@ function payInfo(o){
   const ps = o.payment_confirmed ? 'paid' : (o.payment_status || (o.status === 'paid' ? 'paid' : null));
   if (ps === 'paid') return {label:'Encaissé', cls:'green', can:false, reason:''};
   if (ps === 'refused') return {label:'Refusé', cls:'red', can:false, reason:o.payment_refusal_reason || ''};
+  if (ps === 'cod_collected') return {label:'Espèces chez le livreur', cls:'amber', can:true, refuse:false, reason:'À récupérer auprès du livreur'};
   if (o.payment_method === 'cod') return {label:'À la livraison', cls:'grey', can:true, reason:''};
   return {label:'À vérifier', cls:'amber', can:true, reason:''};
 }
@@ -315,7 +349,7 @@ function payCell(o){
   if (p.reason) h += '<div class="muted" style="max-width:140px;margin-top:3px">' + esc(p.reason) + '</div>';
   if (p.can) h += '<div class="payact">' +
     '<button class="btn-ok" id="ok-' + id + '" onclick="confirmPayment(\'' + id + '\')">✓ Reçu</button>' +
-    '<button class="btn-no" onclick="refusePayment(\'' + id + '\')">✕ Refuser</button></div>';
+    (p.refuse === false ? '' : '<button class="btn-no" onclick="refusePayment(\'' + id + '\')">✕ Refuser</button>') + '</div>';
   h += '</div>';
   return h;
 }
@@ -349,11 +383,11 @@ async function sendPayment(id, action){
     body.reason = i ? i.value : '';
   }
   try {
-    await api('/api/admin/orders/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({payment_confirmed:action === 'confirm'})});
-    toast(action === 'confirm' ? 'Paiement confirmé · ' + id : 'Confirmation de paiement retirée · ' + id);
+    await api('/api/admin/orders/' + encodeURIComponent(id) + '/payment', {method:'POST', body: JSON.stringify(body)});
+    toast(action === 'confirm' ? 'Paiement confirmé · ' + id : 'Paiement refusé, commande annulée · ' + id);
     loadOrders(); loadStats();
   } catch (e) {
-    toast(e.message === 'already_paid' ? 'Paiement déjà encaissé' : 'Action impossible');
+    toast(e.message === 'already_paid' ? 'Paiement déjà encaissé' : e.message === 'already_collected' ? 'Espèces déjà encaissées par le livreur' : 'Action impossible');
     loadOrders();
   }
 }
@@ -362,7 +396,10 @@ async function setStatus(id, status){
     await api('/api/admin/orders/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({status})});
     toast('Commande ' + id + ' → ' + (STATUS[status] || status));
     loadStats();
-  } catch (e) { toast('Mise à jour impossible'); loadOrders(); }
+  } catch (e) {
+    toast(e.message === 'driver_required' ? 'Attribuez d’abord un livreur (cliquez sur le n° de commande)' : 'Mise à jour impossible');
+    loadOrders();
+  }
 }
 
 /* ---------- détail d'une commande ---------- */
@@ -378,6 +415,7 @@ function openOrder(id){
   const payLabel = o.payment_method === 'cod' ? 'Espèces à la livraison' : o.payment_method === 'wave' ? 'Wave' : 'Orange Money';
   const payStatus = o.payment_confirmed || o.payment_status === 'paid' ? 'Encaissé'
     : o.payment_status === 'refused' ? 'Refusé'
+    : o.payment_status === 'cod_collected' ? 'Espèces encaissées par le livreur'
     : (o.payment_method === 'cod' ? 'À la livraison' : 'À vérifier');
   const maps = (c.lat && c.lng) ? 'https://www.google.com/maps?q=' + c.lat + ',' + c.lng : '';
   const itemsHtml = items.map(i => '<div><span>' + esc(i.qty) + '× ' + esc(i.name) +
@@ -396,27 +434,50 @@ function openOrder(id){
       (c.pay_phone ? '<span>N° à débiter</span><b>' + esc(c.pay_phone) + '</b>' : '') +
       (o.promo ? '<span>Code promo</span><b>' + esc(o.promo.code) + ' (−' + esc(o.promo.percent) + '%)</b>' : '') +
       (c.note ? '<span>Note client</span><b>' + esc(c.note) + '</b>' : '') +
+      (o.driver ? '<span>Livreur</span><b>' + esc(o.driver.name || '') + (o.driver.phone ? ' · ' + esc(o.driver.phone) : '') + '</b>' : '') +
+      (o.assigned_at ? '<span>Attribuée</span><b>' + esc(fmtDate(o.assigned_at)) + '</b>' : '') +
+      (o.picked_up_at ? '<span>Récupérée</span><b>' + esc(fmtDate(o.picked_up_at)) + '</b>' : '') +
+      (o.delivered_at ? '<span>Livrée</span><b>' + esc(fmtDate(o.delivered_at)) + '</b>' : '') +
     '</div>' +
     '<div class="oitems">' + (itemsHtml || '<div><span>Aucun article</span></div>') + '</div>' +
     '<div class="otot"><span>Sous-total</span><span>' + fmt(o.subtotal || 0) + ' F</span></div>' +
     (o.discount ? '<div class="otot"><span>Remise</span><span>−' + fmt(o.discount) + ' F</span></div>' : '') +
     '<div class="otot"><span>Livraison</span><span>' + fmt(o.delivery_fee || 0) + ' F</span></div>' +
     '<div class="otot"><span>Total</span><span>' + fmt(o.total || 0) + ' F</span></div>' +
-    '<div class="box"><h4>Livreur attribué</h4><div class="driver-form"><div><label for="driver-id">Identifiant</label><input id="driver-id" value="' + esc(o.driver && o.driver.id || 'driver-1') + '" placeholder="driver-1"></div><div><label for="driver-name">Nom</label><input id="driver-name" value="' + esc(o.driver && o.driver.name || '') + '" placeholder="Nom du livreur"></div><div><label for="driver-phone">Téléphone</label><input id="driver-phone" type="tel" value="' + esc(o.driver && o.driver.phone || '') + '" placeholder="+221…"></div><button class="btn-save" onclick="assignDriver(\'' + esc(o.id) + '\')">Attribuer</button></div></div>' +
+    '<div class="box"><h4>Livreur</h4><div class="assign-row"><select id="driver-select" aria-label="Livreur">' + driverOptions(o) + '</select>' +
+      '<button class="btn-save" onclick="assignDriver(\'' + esc(o.id) + '\')">' + (o.driver ? 'Changer' : 'Attribuer') + '</button></div>' +
+      '<div class="muted" style="margin-top:7px">' + (DRIVERS.some(d => d.active) ? 'La mission apparaît aussitôt sur le téléphone du livreur. ' : 'Aucun livreur actif. ') +
+      '<a href="#" onclick="closeOrder();showTab(\'drivers\');return false" style="color:var(--green-deep);font-weight:800">Gérer les livreurs</a></div></div>' +
     '<div class="box" id="admin-chat"><h4>Conversation client / livreur</h4><div class="chat-messages" id="admin-chat-messages" role="log" aria-live="polite"></div><div class="chat-compose"><textarea id="admin-chat-input" maxlength="1000" aria-label="Réponse du gérant" placeholder="Répondre au client…"></textarea><button class="btn-save" onclick="sendAdminMessage(\'' + esc(o.id) + '\')">Envoyer</button></div></div>';
   document.getElementById('order-sheet').innerHTML = html;
   document.getElementById('order-overlay').classList.add('open');
   startAdminChat(o.id);
 }
 async function assignDriver(id){
-  const name=document.getElementById('driver-name').value.trim(),phone=document.getElementById('driver-phone').value.trim(),driverId=document.getElementById('driver-id').value.trim();
-  if(!driverId||name.length<2||phone.length<5){toast('Identifiant, nom et téléphone du livreur requis');return}
+  const sel = document.getElementById('driver-select');
+  const driverId = sel ? sel.value : '';
   try{
-    const response=await api('/api/admin/orders/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({driver:{id:driverId,name,phone}})});
-    const updated=response.order||response;
-    const order=ORDERS.find(o=>o.id===id);if(order)order.driver=updated.driver;
-    toast('Livreur attribué · '+name);loadOrders();
-  }catch(e){toast('Attribution impossible')}
+    const response = await api('/api/admin/orders/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({driver_id: driverId || null})});
+    const updated = response.order || response;
+    const order = ORDERS.find(o => o.id === id);
+    if (order) Object.assign(order, updated);
+    toast(updated.driver ? 'Mission confiée à ' + updated.driver.name : 'Livreur retiré · ' + id);
+    loadOrders(); loadStats(); loadDrivers();
+    if (order) openOrder(id);
+  }catch(e){ toast(e.message === 'driver_inactive' ? 'Ce livreur est désactivé' : 'Attribution impossible'); }
+}
+function driverOptions(o){
+  const cur = o.driver && o.driver.id;
+  const list = DRIVERS.filter(d => d.active || d.id === cur);
+  let opts = '<option value="">— Aucun livreur —</option>' + list.map(d =>
+    '<option value="' + esc(d.id) + '"' + (d.id === cur ? ' selected' : '') + '>' + esc(d.name) + (d.active ? '' : ' (désactivé)') + '</option>').join('');
+  if (cur && !list.some(d => d.id === cur)) opts += '<option value="' + esc(cur) + '" selected>' + esc(o.driver.name || cur) + '</option>';
+  return opts;
+}
+function driverTag(o){
+  if (o.driver) return '<span class="drv-tag">🛵 ' + esc(o.driver.name || 'Livreur') + '</span>';
+  if (['confirmed','preparing','paid'].includes(o.status)) return '<span class="drv-tag todo">Livreur à attribuer</span>';
+  return '';
 }
 let adminChatPoll=null,adminChatId=null,adminChatBusy=false;
 function startAdminChat(id){clearInterval(adminChatPoll);adminChatId=id;loadAdminMessages(id);adminChatPoll=setInterval(()=>loadAdminMessages(id),4000)}
@@ -426,7 +487,7 @@ async function loadAdminMessages(id){
     const messages=await api('/api/orders/'+encodeURIComponent(id)+'/messages');if(adminChatId!==id)return;
     const box=document.getElementById('admin-chat-messages');if(!box)return;box.innerHTML='';
     if(!messages.length){box.innerHTML='<div class="muted">Aucun message pour cette commande.</div>';return}
-    messages.forEach(m=>{const item=document.createElement('div');item.className='chat-message '+(m.sender_role==='admin'?'admin':'');const meta=document.createElement('small');meta.textContent=m.sender_role+' · '+m.sender_name;const text=document.createElement('p');text.textContent=m.text;item.append(meta,text);box.appendChild(item)});box.scrollTop=box.scrollHeight;
+    messages.forEach(m=>{const item=document.createElement('div');item.className='chat-message '+(m.sender_role==='admin'?'admin':'');const meta=document.createElement('small');meta.textContent=(m.sender_role==='admin'?'Vous (boutique)':(m.sender_role==='driver'?'Livreur · ':'Client · ')+m.sender_name)+' · '+new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});const text=document.createElement('p');text.textContent=m.text;item.append(meta,text);box.appendChild(item)});box.scrollTop=box.scrollHeight;
   }catch(e){}finally{adminChatBusy=false}
 }
 async function sendAdminMessage(id){
@@ -434,6 +495,104 @@ async function sendAdminMessage(id){
   try{await api('/api/orders/'+encodeURIComponent(id)+'/messages',{method:'POST',headers:{'X-Message-Role':'admin'},body:JSON.stringify({text})});input.value='';await loadAdminMessages(id)}catch(e){toast('Message non envoyé')}
 }
 function closeOrder(){clearInterval(adminChatPoll);adminChatPoll=null;adminChatId=null;document.getElementById('order-overlay').classList.remove('open');}
+
+/* ---------- livreurs ---------- */
+let DRIVERS = [];
+const shownCodes = new Set();
+let editingDriver = null;
+async function loadDrivers(){
+  try{
+    const d = await api('/api/admin/drivers');
+    DRIVERS = d.drivers || [];
+    renderDrivers();
+  }catch(e){ if (e.message !== 'unauthorized') toast('Livreurs indisponibles'); }
+}
+function waNumber(phone){
+  let n = String(phone || '').replace(/\D/g, '');
+  if (n.length === 9) n = '221' + n;
+  return n;
+}
+function renderDrivers(){
+  const grid = document.getElementById('drivers-grid');
+  if (!grid) return;
+  document.getElementById('drivers-empty').classList.toggle('hidden', DRIVERS.length > 0);
+  grid.innerHTML = DRIVERS.map(d => {
+    const id = esc(d.id), shown = shownCodes.has(d.id);
+    if (editingDriver === d.id) {
+      return '<div class="drv-card"><h3><span>Modifier le livreur</span></h3><div class="drv-edit">' +
+        '<div><label for="ed-name">Nom</label><input id="ed-name" maxlength="80" value="' + esc(d.name) + '"></div>' +
+        '<div><label for="ed-phone">Téléphone</label><input id="ed-phone" type="tel" maxlength="30" value="' + esc(d.phone) + '"></div>' +
+        '<div class="row-actions"><button class="btn-save" onclick="saveDriver(\'' + id + '\')">Enregistrer</button><button class="btn-ghost" onclick="editingDriver=null;renderDrivers()">Annuler</button></div></div></div>';
+    }
+    return '<div class="drv-card' + (d.active ? '' : ' off') + '">' +
+      '<h3><span>🛵 ' + esc(d.name || 'Livreur') + '</span><span class="pill ' + (d.active ? 'green' : 'grey') + '">' + (d.active ? 'Actif' : 'Désactivé') + '</span></h3>' +
+      '<div class="muted">' + esc(d.phone || 'Téléphone non renseigné') + ' · ' + d.active_missions + ' en cours · ' + d.delivered + ' livrée(s)</div>' +
+      '<div class="drv-code"><code>' + (shown ? esc(d.code) : '•••• •••• ••••') + '</code>' +
+        '<button class="btn-ghost" onclick="toggleCode(\'' + id + '\')">' + (shown ? 'Masquer' : 'Afficher le code') + '</button>' +
+        (shown ? '<button class="btn-ghost" onclick="copyCode(\'' + id + '\')">Copier</button>' : '') + '</div>' +
+      '<div class="row-actions">' +
+        (d.phone ? '<button class="btn-ghost" onclick="shareCode(\'' + id + '\')">Envoyer par WhatsApp</button>' : '') +
+        '<button class="btn-ghost" onclick="editingDriver=\'' + id + '\';renderDrivers()">Modifier</button>' +
+        '<button class="btn-ghost" id="rc-' + id + '" onclick="resetCode(\'' + id + '\')">Nouveau code</button>' +
+        '<button class="' + (d.active ? 'btn-danger' : 'btn-save') + '" onclick="toggleDriver(\'' + id + '\')">' + (d.active ? 'Désactiver' : 'Réactiver') + '</button>' +
+      '</div></div>';
+  }).join('');
+}
+function toggleCode(id){ if (shownCodes.has(id)) shownCodes.delete(id); else shownCodes.add(id); renderDrivers(); }
+async function copyCode(id){
+  const d = DRIVERS.find(x => x.id === id); if (!d) return;
+  try { await navigator.clipboard.writeText(d.code); toast('Code copié'); } catch (e) { toast('Copie impossible — sélectionnez le code'); }
+}
+function shareCode(id){
+  const d = DRIVERS.find(x => x.id === id); if (!d || !d.phone) return;
+  const text = 'Bonjour ' + d.name + ', voici ton accès livreur Darou Rahmane Chicken :\n' +
+    location.origin + '/livreur/\nCode : ' + d.code + '\nGarde-le pour toi.';
+  window.open('https://wa.me/' + waNumber(d.phone) + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+}
+async function addDriver(ev){
+  ev.preventDefault();
+  const name = document.getElementById('drv-name').value.trim();
+  const phone = document.getElementById('drv-phone').value.trim();
+  if (name.length < 2){ toast('Indiquez le nom du livreur'); return; }
+  if (phone.replace(/\D/g, '').length < 7){ toast('Indiquez le téléphone du livreur'); return; }
+  try{
+    const r = await api('/api/admin/drivers', {method:'POST', body: JSON.stringify({name, phone})});
+    shownCodes.add(r.driver.id);
+    document.getElementById('drv-name').value = ''; document.getElementById('drv-phone').value = '';
+    toast('Livreur ajouté · code ' + r.driver.code);
+    await loadDrivers(); loadStats();
+  }catch(e){ toast('Ajout impossible'); }
+}
+async function saveDriver(id){
+  const name = document.getElementById('ed-name').value.trim();
+  const phone = document.getElementById('ed-phone').value.trim();
+  try{
+    await api('/api/admin/drivers/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({name, phone})});
+    editingDriver = null; toast('Livreur mis à jour');
+    await loadDrivers(); loadOrders();
+  }catch(e){ toast(e.message === 'invalid_phone' ? 'Téléphone invalide' : e.message === 'invalid_name' ? 'Nom trop court' : 'Mise à jour impossible'); }
+}
+async function resetCode(id){
+  const b = document.getElementById('rc-' + id);
+  if (b && b.dataset.arm !== '1'){
+    b.dataset.arm = '1'; b.textContent = 'Confirmer ?'; b.classList.add('armed');
+    b._t = setTimeout(() => { b.dataset.arm = ''; b.textContent = 'Nouveau code'; b.classList.remove('armed'); }, 5000);
+    return;
+  }
+  try{
+    await api('/api/admin/drivers/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({reset_code: true})});
+    shownCodes.add(id); toast('Nouveau code créé — l’ancien ne fonctionne plus');
+    await loadDrivers();
+  }catch(e){ toast('Changement de code impossible'); }
+}
+async function toggleDriver(id){
+  const d = DRIVERS.find(x => x.id === id); if (!d) return;
+  try{
+    await api('/api/admin/drivers/' + encodeURIComponent(id), {method:'PATCH', body: JSON.stringify({active: !d.active})});
+    toast(d.active ? 'Livreur désactivé : son code ne fonctionne plus' : 'Livreur réactivé');
+    await loadDrivers(); loadStats();
+  }catch(e){ toast('Action impossible'); }
+}
 
 /* ---------- alerte d'une nouvelle commande ---------- */
 function beep(){
