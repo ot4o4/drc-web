@@ -639,6 +639,20 @@ img{object-fit:cover}
 .map-hint{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
 .map-hint.ok{color:#0B7A3B;font-weight:700}
 .leaflet-container{font:inherit;z-index:0}
+.driver-card,.chat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;margin-top:12px;box-shadow:var(--sh-1)}
+.driver-card h3,.chat-card h3{font-size:13px;margin-bottom:6px;color:var(--green-deep)}
+.driver-meta{font-size:12px;color:var(--muted);margin-bottom:10px}
+.driver-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chat-card{margin-bottom:8px}
+#chat-messages{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;padding:6px 0 12px;min-height:56px}
+.chat-empty{text-align:center;color:var(--muted);font-size:12px;padding:16px 4px}
+.chat-message{max-width:86%;padding:9px 11px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);align-self:flex-start;overflow-wrap:anywhere;user-select:text}
+.chat-message.customer{align-self:flex-end;background:var(--green-soft);border-color:#CFE6D6}
+.chat-message small{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}
+.chat-message p{font-size:12.5px;white-space:pre-wrap}
+.chat-compose{display:flex;gap:8px;align-items:flex-end}
+.chat-compose textarea{flex:1;min-height:44px;max-height:110px;resize:vertical;border:1.5px solid var(--line);border-radius:var(--r-md);padding:11px;background:var(--surface-2)}
+.chat-compose button{min-width:76px;min-height:44px;flex:none}
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -781,7 +795,7 @@ img{object-fit:cover}
       <div class="menu-item" onclick="callShop()"><span class="mi">📞</span>Service client<span class="arr">›</span></div>
       <div class="menu-item" onclick="openPage('page-legal')"><span class="mi">🔒</span>Confidentialité & conditions<span class="arr">›</span></div>
       <div class="menu-item" onclick="aboutInfo()"><span class="mi">ℹ️</span>À propos de DRC<span class="arr">›</span></div>
-      <a class="menu-item" href="admin.html" target="_blank" rel="noopener"><span class="mi">🔐</span>Espace gérant<span class="arr">↗</span></a>
+      <a class="menu-item" href="/admin" target="_blank" rel="noopener"><span class="mi">🔐</span>Espace gérant<span class="arr">↗</span></a>
     </div>
     <div class="foot-banner wax contact-banner" style="background:linear-gradient(120deg,#8E1519,var(--red))" onclick="callShop()" role="button">
       <h3>Une question ? 📞 +221 70 917 09 20</h3>
@@ -1038,7 +1052,7 @@ img{object-fit:cover}
       <div class="pd-desc">
         <p>Darou Rahmane Chicken — Dakar, Sénégal<br>
         Service client : +221 70 917 09 20 · 78 924 95 55 · 78 471 17 67<br>
-        Version du site : <b>7.7</b></p>
+        Version du site : <b>7.8</b></p>
       </div>
     </div>
     <button class="btn outline" style="width:100%;margin-bottom:16px" onclick="closePage('page-legal')">Fermer</button>
@@ -1124,13 +1138,13 @@ let CATS = [
 ];
 
 /* ================== CONFIG / STATE ================== */
-const APP_VERSION = '7.7';
+const APP_VERSION = '7.8';
 const SHOP_PHONE = '+221 70 917 09 20';
 const SHOP_WA = '221709170920';
 const PROMO = {code:'TERANGA', pct:15};
 const API_BASE = (localStorage.getItem('drc_api') || 'https://drc-api-dj8t.onrender.com').replace(/\/+$/,'');
 const LS = {cart:'drc_cart', orders:'drc_orders', token:'drc_token', user:'drc_user', admin:'drc_admin',
-            phone:'drc_phone', promo:'drc_promo', addr:'drc_addr'};
+            phone:'drc_phone', promo:'drc_promo', addr:'drc_addr', orderTokens:'drc_order_tokens'};
 
 let cart = [];
 let orders = [];
@@ -1212,6 +1226,9 @@ function loadOrders(){
   orders = Array.isArray(o) ? o.filter(x=>x && x.id) : [];
 }
 function saveOrders(){ lsSet(LS.orders, orders); }
+function orderTokens(){ const value=lsGet(LS.orderTokens,{}); return value && typeof value==='object' && !Array.isArray(value) ? value : {}; }
+function saveOrderToken(id,token){ if(!id||!token)return;const tokens=orderTokens();tokens[String(id)]=token;lsSet(LS.orderTokens,tokens); }
+function getOrderToken(id){ return orderTokens()[String(id)]||''; }
 
 const STATUS_LABEL = {
   pending:'Nouvelle', confirmed:'Confirmée', preparing:'En préparation', shipping:'En livraison',
@@ -1251,7 +1268,7 @@ async function checkApi(){
   if (!navigator.onLine){ apiOnline = false; setNet('offline'); scheduleCheck(20000); return; }
   try{
     const r = await fetchJSON(API_BASE + '/api/health', {}, 20000);
-    const online = !!(r.ok && r.data && r.data.ok);
+    const online = !!(r.ok && r.data && (r.data.ok || r.data.status === 'ok'));
     const wasOnline = apiOnline;
     apiOnline = online;
     if (r.data && r.data.payments){
@@ -1306,39 +1323,41 @@ async function loadProducts(){
   }catch(e){}
 }
 
+function mapRemoteOrder(o){
+  return {id:o.id,ts:o.created_at?Date.parse(o.created_at):Date.now(),date:(o.created_at||'').slice(0,10)||'Récente',
+    items:Array.isArray(o.items)?o.items.map(i=>({id:i.id,name:i.name,price:i.price||0,qty:i.qty||1,variant:i.variant||''})):[],
+    total:o.total||0,subtotal:o.subtotal||0,discount:o.discount||0,delivery_fee:o.delivery_fee||0,
+    status:o.status||'pending',payment:o.payment||null,payment_confirmed:o.payment_confirmed===true,
+    customer:o.customer||null,driver:o.driver||null,remote:true};
+}
 async function loadRemoteOrders(){
-  if (!apiOnline) return;
+  if(!apiOnline)return;
   try{
-    let url = API_BASE + '/api/orders';
-    if (!authToken){
-      const phone = rawGet(LS.phone);
-      if (!phone) return;
-      url += '?phone=' + encodeURIComponent(phone);
+    const entries=Object.entries(orderTokens());
+    if(entries.length){
+      const results=await Promise.all(entries.map(async ([id,token])=>{
+        try{return await fetchJSON(API_BASE+'/api/orders/'+encodeURIComponent(id),{headers:{'X-Order-Token':token}},20000)}catch(e){return null}
+      }));
+      const ordersData=results.filter(r=>r&&r.ok&&r.data).map(r=>r.data.order||r.data).filter(o=>o&&o.id);
+      remoteOrders=ordersData.map(mapRemoteOrder);
+    }else{
+      let url=API_BASE+'/api/orders';
+      if(!authToken){const phone=rawGet(LS.phone);if(!phone)return;url+='?phone='+encodeURIComponent(phone)}
+      const r=await fetchJSON(url,{headers:authHeaders()},25000);const j=r.data;
+      if(!j||!j.orders)return;
+      remoteOrders=j.orders.map(mapRemoteOrder);
     }
-    const r = await fetchJSON(url, {headers: authHeaders()}, 25000);
-    const j = r.data;
-    if (!j || !j.orders) return;
-    remoteOrders = j.orders.map(o=>({
-      id:o.id,
-      ts:o.created_at ? Date.parse(o.created_at) : Date.now(),
-      date:(o.created_at||'').slice(0,10) || 'Récente',
-      items:Array.isArray(o.items) ? o.items.map(i=>({id:i.id, name:i.name, price:i.price||0, qty:i.qty||1})) : [],
-      total:o.total||0,
-      status:o.status || 'pending',
-      payment:o.payment || null,
-      remote:true
-    }));
     renderOrders();
   }catch(e){}
 }
 
 /* envoi d'une commande (utilisé aussi par la file d'attente hors ligne) */
 async function postOrder(payload){
-  return fetchJSON(API_BASE + '/api/orders', {
-    method:'POST',
-    headers:Object.assign({'Content-Type':'application/json'}, authHeaders()),
-    body:JSON.stringify(payload)
-  }, 25000);
+  if(!payload.client_order_id)payload.client_order_id=crypto.randomUUID();
+  const response=await fetchJSON(API_BASE+'/api/orders',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},authHeaders()),body:JSON.stringify(payload)},25000);
+  const order=response.data&&response.data.order?response.data.order:response.data;
+  if(response.ok&&order&&order.id){if(order.customer_token) saveOrderToken(order.id, order.customer_token);response.data=Object.assign({},response.data,{order});}
+  return response;
 }
 
 async function syncPendingOrders(){
@@ -2251,7 +2270,10 @@ async function confirmOrder(){
     ts: Date.now(),
     date: todayLabel(),
     items: payload.items.map(i=>({id:i.id, name:i.name, price:i.price, qty:i.qty, variant:i.variant})),
-    total: order.total || total,
+    total: order.total ?? total,
+    subtotal: order.subtotal || 0,
+    discount: order.discount || 0,
+    delivery_fee: order.delivery_fee || 0,
     status: order.status || (queued ? 'local_pending' : 'pending'),
     payment: order.payment || null,
     pending: queued,
@@ -2297,10 +2319,16 @@ function allOrders(){
       const loc = merged[idx];
       merged[idx] = Object.assign({}, loc, {
         status: loc.pending ? loc.status : (ro.status || loc.status),
-        total: loc.total || ro.total,
+        total: ro.total ?? loc.total,
+        subtotal: ro.subtotal ?? loc.subtotal,
+        discount: ro.discount ?? loc.discount,
+        delivery_fee: ro.delivery_fee ?? loc.delivery_fee,
         date: loc.date || ro.date,
-        items: (loc.items && loc.items.length) ? loc.items : ro.items,
-        payment: loc.payment || ro.payment
+        items: (ro.items && ro.items.length) ? ro.items : loc.items,
+        payment: ro.payment || loc.payment,
+        payment_confirmed: ro.payment_confirmed === true,
+        customer: ro.customer || loc.customer,
+        driver: ro.driver || null
       });
     } else {
       merged.push(ro);
@@ -2388,11 +2416,42 @@ function trackOrder(id){
     ${local ? `<div class="pay-note" style="background:#FFF3D6">📶 Commande enregistrée hors ligne : elle sera transmise automatiquement dès le retour du réseau.</div>` : timeline}
     ${st === 'cancelled' ? '<div class="pay-note" style="background:#FBE9EA">Cette commande a été annulée. Contactez-nous si besoin.</div>' : ''}
     ${(o.payment && o.payment.type === 'link' && o.payment.url) ? `<button class="btn solid" style="width:100%;margin-top:12px" onclick="location.href='${o.payment.url}'">Payer maintenant</button>` : ''}
+    ${o.payment_confirmed ? '<div class="pay-note" style="background:var(--green-soft)">✓ Paiement confirmé par le gérant</div>' : ''}
+    ${!local ? `<div class="driver-card"><h3>Votre livreur</h3>${o.driver && o.driver.phone ? `<div class="driver-meta"><b>${escHtml(o.driver.name||'Livreur DRC')}</b> · ${escHtml(o.driver.phone)}</div><div class="driver-actions"><button class="btn outline" onclick="callDriver('${escHtml(o.driver.phone)}')">Appeler</button><button class="btn wa" onclick="waDriver('${escHtml(o.driver.phone)}','${escHtml(o.id)}')">WhatsApp</button></div>` : '<div class="driver-meta">Livreur pas encore attribué</div>'}</div>` : ''}
+    ${!local&&getOrderToken(o.id) ? `<div class="chat-card" id="order-chat"><h3>Conversation avec le livreur</h3><div id="chat-messages" role="log" aria-live="polite"><div class="chat-empty">Chargement…</div></div><div class="chat-compose"><textarea id="chat-input" maxlength="1000" rows="1" aria-label="Votre message au livreur" placeholder="Écrivez votre message…"></textarea><button class="btn solid" onclick="sendOrderMessage('${escHtml(o.id)}')">Envoyer</button></div></div>` : ''}
     <button class="btn outline" style="width:100%;margin-top:10px" onclick="chatShop('Bonjour, je souhaite des nouvelles de ma commande ${escHtml(o.id)}.')">Contacter la boutique</button>
     <button class="btn outline" style="width:100%;margin-top:8px" onclick="closeSheet()">Fermer</button>`;
   document.getElementById('sheet-track').classList.add('open');
+  startOrderChat(o.id);
 }
-function closeSheet(){ document.getElementById('sheet-track').classList.remove('open'); }
+let chatPoll=null,chatBusy=false,currentChatOrderId=null;
+function startOrderChat(id){
+  clearInterval(chatPoll);currentChatOrderId=id;
+  if(!getOrderToken(id))return;
+  loadOrderMessages(id);chatPoll=setInterval(()=>loadOrderMessages(id),4000);
+}
+function callDriver(phone){const clean=String(phone||'').replace(/[^+\d]/g,'');if(!clean){toast('Numéro du livreur indisponible');return}location.href='tel:'+clean;}
+function waDriver(phone,id){const clean=String(phone||'').replace(/\D/g,'');if(!clean){toast('Numéro du livreur indisponible');return}window.open('https://wa.me/'+clean+'?text='+encodeURIComponent('Bonjour, au sujet de la commande '+id),'_blank','noopener');}
+async function loadOrderMessages(id){
+  if(chatBusy||currentChatOrderId!==id||!getOrderToken(id))return;chatBusy=true;
+  try{
+    const r=await fetchJSON(API_BASE+'/api/orders/'+encodeURIComponent(id)+'/messages',{headers:{'X-Order-Token':getOrderToken(id)}},15000);
+    if(!r.ok||!Array.isArray(r.data)||currentChatOrderId!==id)return;
+    const box=document.getElementById('chat-messages');if(!box)return;box.innerHTML='';
+    if(!r.data.length){box.innerHTML='<div class="chat-empty">Aucun message. Écrivez au livreur ici.</div>';return}
+    r.data.forEach(m=>{const item=document.createElement('div');item.className='chat-message '+(m.sender_role==='customer'?'customer':'driver');const meta=document.createElement('small');meta.textContent=(m.sender_name||'Livreur DRC')+' · '+new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});const text=document.createElement('p');text.textContent=m.text;item.append(meta,text);box.appendChild(item)});
+    box.scrollTop=box.scrollHeight;
+  }catch(e){}finally{chatBusy=false}
+}
+async function sendOrderMessage(id){
+  const input=document.getElementById('chat-input');if(!input)return;const text=input.value.trim();
+  if(!text){toast('Écrivez un message');return}if(!getOrderToken(id)){toast('Commande non synchronisée');return}
+  try{
+    const r=await fetchJSON(API_BASE+'/api/orders/'+encodeURIComponent(id)+'/messages',{method:'POST',headers:{'Content-Type':'application/json','X-Order-Token':getOrderToken(id)},body:JSON.stringify({text})},15000);
+    if(!r.ok){toast('Message non envoyé');return}input.value='';await loadOrderMessages(id);
+  }catch(e){toast('Message non envoyé')}
+}
+function closeSheet(){clearInterval(chatPoll);chatPoll=null;currentChatOrderId=null;document.getElementById('sheet-track').classList.remove('open');}
 
 /* ================== COUNTDOWN ================== */
 function tickCountdown(){
