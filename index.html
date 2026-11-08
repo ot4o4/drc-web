@@ -1376,6 +1376,13 @@ async function syncPendingOrders(){
   for (const o of pend){
     try{
       const r = await postOrder(o.payload);
+      if (!r.ok && r.status >= 400 && r.status < 500 && r.status !== 429){
+        /* Refusée par le serveur : on arrête de la renvoyer et on le dit au client. */
+        o.pending = false; o.status = 'cancelled'; o.refused = (r.data && r.data.error) || 'invalid';
+        delete o.payload; saveOrders(); renderOrders();
+        toast('Une commande en attente n\u2019a pas pu être transmise : appelez le ' + SHOP_PHONE);
+        continue;
+      }
       if (r.ok && r.data && r.data.order){
         const so = r.data.order;
         if (so.id) o.id = so.id;
@@ -2253,12 +2260,21 @@ async function confirmOrder(){
   const total = cartTotal() - disc + fee;
   const payload = buildOrderPayload(name, phone, zone, note, slot, payMethod, payPhone, geo);
 
-  let order = null;
+  let order = null, refused = null;
   if (apiOnline){
     try{
       const r = await postOrder(payload);
       if (r.ok && r.data && r.data.order) order = r.data.order;
+      /* Refus explicite du serveur (article retiré, données invalides) : ne pas mettre la commande
+         en file d'attente, elle serait renvoyée et refusée indéfiniment. */
+      else if (r.status >= 400 && r.status < 500 && r.status !== 429) refused = (r.data && r.data.error) || 'invalid';
     }catch(e){}
+  }
+  if (refused){
+    btn.classList.remove('loading');
+    if (refused === 'invalid_item'){ loadProducts(); toast('Un article de votre panier n\u2019est plus disponible : retirez-le puis validez à nouveau'); }
+    else toast('Commande refusée : vérifiez votre nom, votre numéro et votre position');
+    return;
   }
   const queued = !order;
   if (queued){
