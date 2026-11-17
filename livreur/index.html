@@ -21,6 +21,62 @@ header{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;paddin
 .driver-chat{margin:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.driver-chat h3{font-size:14px;margin-bottom:12px}.driver-chat-messages{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;margin-bottom:12px}.chat-empty{color:var(--muted);font-size:12px;text-align:center;padding:15px}.chat-message{max-width:86%;padding:9px 11px;border-radius:13px;background:#EEF3F6;border:1px solid var(--line);overflow-wrap:anywhere}.chat-message.driver{align-self:flex-end;background:#E5F5EE;border-color:#BFE3D4}.chat-message small{display:block;color:var(--muted);font-size:9px;margin-bottom:3px}.chat-message p{font-size:12.5px;white-space:pre-wrap}.driver-chat-compose{display:flex;gap:8px}.driver-chat-compose textarea{flex:1;min-height:46px;max-height:110px;resize:vertical;border:1.5px solid var(--line);border-radius:12px;padding:11px;font:inherit}.driver-chat-compose button{width:auto;min-width:82px;min-height:46px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<style>
+/* ── identité Darou Rahmane Chicken (même monde visuel que les applications) ── */
+@font-face{font-family:PJS;src:url(fonts/pjs-400.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:PJS;src:url(fonts/pjs-500.woff2) format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:PJS;src:url(fonts/pjs-600.woff2) format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:PJS;src:url(fonts/pjs-700.woff2) format('woff2');font-weight:700;font-display:swap}
+:root{--navy:#24211F;--navy-2:#2E2A26;--blue:#C2531B;--cyan:#E2672A;--yellow:#FF8A4C;--ink:#24211F;--muted:#6E665F;
+  --line:#EBE5DD;--bg:#F4F0EA;--white:#fff;--green:#1F8A4C;--green-soft:#E3F2E8;--red:#C0392B;
+  --shadow:0 10px 30px -20px rgba(60,40,20,.35);--r:24px}
+body{font-family:PJS,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.01em;background:var(--bg)}
+header{background:var(--navy);box-shadow:0 6px 20px -12px rgba(0,0,0,.5)}
+.brand-icon{background:#fff;border-radius:15px;padding:3px 5px;width:58px;height:44px}
+.brand-icon img{height:32px;width:auto;display:block}
+.brand b{font-weight:600;font-size:15.5px}
+.brand small{color:#C7BDB3;letter-spacing:.14em}
+.iconbtn{border-radius:15px;background:rgba(255,255,255,.1)}
+.service{border-top-color:rgba(255,255,255,.14);color:#CFC5BB}
+.service-dot{background:var(--yellow)}
+#splash{background:linear-gradient(180deg,#1A1715,#131110)}
+#splash::before{background:radial-gradient(circle at 50% 35%,rgba(255,138,76,.16),transparent 60%)}
+.splash-mark{background:#fff;border:0;border-radius:34px;width:186px;height:126px;box-shadow:0 24px 60px -22px rgba(0,0,0,.8)}
+.splash-mark img{height:78px;width:auto;display:block}
+.splash-brand{color:#B6ABA0}.splash-role{font-weight:700;letter-spacing:.16em;font-size:26px}
+.splash-line{background:var(--yellow);width:44px;height:4px;border-radius:2px}
+.splash-sub{color:#9C9186}
+.btn.primary{background:var(--yellow);color:#24211F;font-weight:600}
+.btn{border-radius:16px;font-weight:600;background:var(--navy)}
+.btn.secondary{background:var(--bg);color:var(--ink)}
+.btn.success{background:var(--green);color:#fff}
+.login-card{border:0;box-shadow:var(--shadow);border-radius:28px;background:#fff}
+.login-kicker{color:var(--blue)}
+.login-card h1{font-weight:600;letter-spacing:-.03em;font-size:28px}
+.field input{background:#fff;border-color:var(--line);border-radius:16px;min-height:52px}
+.field input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,138,76,.18)}
+.mission{border:0;box-shadow:var(--shadow);border-radius:26px}
+.mission::before{width:0}
+.status{border-radius:999px;font-weight:700;letter-spacing:0}
+.status.shipping{background:#FFE6D6;color:#C2531B}
+.cash{border-radius:16px}
+.tab{font-weight:600}
+.empty{border-style:solid;border-color:var(--line);border-radius:26px;background:#fff}
+.tracking-nav{background:rgba(36,33,31,.97)}
+.contact-driver,.progress-card,.details-card,.driver-chat,.map-wrap{border:0;box-shadow:var(--shadow);border-radius:26px}
+.map-wrap{border-radius:26px;overflow:hidden}
+.tracking-hero{border-radius:26px;background:linear-gradient(160deg,#2E2A26,#24211F)}
+.tracking-order span{background:var(--yellow);color:#24211F;border-radius:999px;font-weight:700}
+.step-dot{border-radius:50%}
+.progress-fill{background:var(--yellow)}
+.chat-message{border-radius:16px}
+.chat-message.driver{background:var(--green-soft);border-color:#BFE3D4}
+#toast{background:#24211F;border-radius:16px}
+.live-strip{display:flex;align-items:center;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#E7DED5}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#4ED08A;box-shadow:0 0 0 4px rgba(78,208,138,.18);animation:pulseLive 1.6s infinite}
+@keyframes pulseLive{50%{opacity:.4}}
+.live-strip b{color:#fff;font-weight:600}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -32,8 +88,8 @@ header{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;paddin
 <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M6.1 8a7 7 0 0 1 11.8-1L20 12M4 12l2.1 5a7 7 0 0 0 11.8-1"/></symbol>
 <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
 </defs></svg>
-<div id="splash"><div class="splash-inner"><div class="splash-mark"><svg class="svg driver-scooter"><use href="#scooter"/></svg></div><div class="splash-brand">DAROU RAHMANE CHICKEN</div><div class="splash-role">LIVREUR</div><div class="splash-line"></div><div class="splash-sub">VOS LIVRAISONS. VOTRE TOURNÉE.</div></div></div>
-<header><div class="hd-top"><div class="brand-icon"><svg class="svg driver-scooter"><use href="#scooter"/></svg></div><div class="brand"><b>DRC LIVREUR</b><small>ESPACE PROFESSIONNEL</small></div><div class="header-actions app-only hidden"><button class="iconbtn" onclick="loadOrders()" aria-label="Actualiser les missions"><svg class="svg"><use href="#refresh"/></svg></button><button class="iconbtn" onclick="lock()" aria-label="Verrouiller l’application"><svg class="svg"><use href="#lock"/></svg></button></div></div><div class="service app-only hidden" id="service"><span class="service-dot"></span><span id="service-text">Connexion au service…</span></div></header>
+<div id="splash"><div class="splash-inner"><div class="splash-mark"><img src="logo.png" alt="Darou Rahmane Chicken"></div><div class="splash-brand">DAROU RAHMANE CHICKEN</div><div class="splash-role">LIVREUR</div><div class="splash-line"></div><div class="splash-sub">VOS LIVRAISONS. VOTRE TOURNÉE.</div></div></div>
+<header><div class="hd-top"><div class="brand-icon"><img src="logo.png" alt="Darou Rahmane Chicken"></div><div class="brand"><b>DRC LIVREUR</b><small>ESPACE PROFESSIONNEL</small></div><div class="header-actions app-only hidden"><button class="iconbtn" onclick="loadOrders()" aria-label="Actualiser les missions"><svg class="svg"><use href="#refresh"/></svg></button><button class="iconbtn" onclick="lock()" aria-label="Verrouiller l’application"><svg class="svg"><use href="#lock"/></svg></button></div></div><div class="service app-only hidden" id="service"><span class="service-dot"></span><span id="service-text">Connexion au service…</span></div></header>
 <main id="view-login"><section class="login-wrap"><div class="login-card"><div class="login-kicker"><svg class="svg"><use href="#scooter"/></svg> Accès livreur</div><h1>Votre tournée<br>commence ici.</h1><p>Consultez les colis confiés par le gérant, contactez les destinataires et confirmez chaque livraison.</p><div class="field" id="lg-field"><label for="lg-code">Code livreur</label><input id="lg-code" type="password" placeholder="Ex. DRC-1234-5678" autocomplete="off" autocapitalize="characters" spellcheck="false" onkeydown="if(event.key==='Enter')login()"><div class="server-note">Code donné par le gérant (Espace gérant → Livreurs). Majuscules et tirets facultatifs.</div><div class="msg">Code incorrect ou serveur indisponible</div></div><button class="btn primary" id="lg-btn" onclick="login()">Accéder à mes missions</button><details class="advanced"><summary>Réglage du serveur</summary><div class="field"><label for="lg-server">Adresse du serveur</label><input id="lg-server" type="url" placeholder="https://drc-api-dj8t.onrender.com" autocapitalize="off" spellcheck="false"></div><button class="btn secondary" onclick="saveServer()">Enregistrer le serveur</button><div class="server-note">Réservé à l’assistance technique.</div></details></div></section></main>
 <main id="view-app" class="hidden"><section class="tour-hero"><div class="tour-top"><div><div class="tour-label">Tableau de bord</div><h1 id="tournee-title">Ma tournée</h1></div><div class="tour-date" id="tour-date"></div></div><div class="tour-summary"><span><b id="active-total">0</b> missions actives</span><span><b id="done-total">0</b> terminées</span></div></section><div class="adm-stats" id="stats"></div><div class="tabs" role="tablist" aria-label="Filtrer les missions"><button id="t-depot" class="on" role="tab" onclick="switchTab('depot')">À récupérer<span class="tab-count" id="count-depot">0</span></button><button id="t-shipping" role="tab" onclick="switchTab('shipping')">En cours<span class="tab-count" id="count-shipping">0</span></button><button id="t-done" role="tab" onclick="switchTab('done')">Terminées<span class="tab-count" id="count-done">0</span></button></div><div class="list-head"><h2 id="list-title">Colis à récupérer au dépôt</h2><span id="list-count">0 mission</span></div><div id="orders" aria-live="polite"></div></main>
 <section id="mission-tracking" class="tracking-page" aria-label="Suivi de la mission">
@@ -119,6 +175,7 @@ function openTracking(id){
   document.getElementById('mission-map').classList.add('hidden');document.getElementById('map-fallback').classList.remove('hidden');document.getElementById('map-fallback').innerHTML='<div><svg class="svg"><use href="#map"/></svg><b>Chargement de l’itinéraire…</b></div>';
   const openSeq=trackingSeq;
   setTimeout(()=>{if(openSeq===trackingSeq&&trackingId===String(id))loadMissionMap(o)},80);
+  setTimeout(()=>{if(openSeq===trackingSeq&&trackingId===String(id))startLiveNav(o)},1500);
 }
 let sharePosT = null, sharePosWatch = null;
 async function pushPos(pos){
@@ -143,7 +200,72 @@ function stopSharePos(){
   const b = document.getElementById('sharePos');
   if (b) { b.textContent = 'Partager ma position au client'; b.style.background = ''; b.style.color = ''; }
 }
-function closeTracking(){stopSharePos();trackingSeq++;trackingId=null;clearInterval(driverChatPoll);driverChatPoll=null;document.getElementById('mission-tracking').classList.remove('open');document.body.style.overflow='';if(missionMap){missionMap.remove();missionMap=null;routeGroup=null}}
+/* ── suivi en temps réel : ma position + itinéraire vers le client ── */
+let liveWatch = null, liveMe = null, liveClient = null, liveRoute = null, liveLastRoute = null, liveLastPush = 0, liveDest = null;
+function haversine(a, b) {
+  const R = 6371, dLat = (b.lat - a.lat) * Math.PI / 180, dLng = (b.lng - a.lng) * Math.PI / 180;
+  const la1 = a.lat * Math.PI / 180, la2 = b.lat * Math.PI / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function stopLiveNav() {
+  if (liveWatch !== null && navigator.geolocation) navigator.geolocation.clearWatch(liveWatch);
+  liveWatch = null; liveMe = null; liveClient = null; liveRoute = null; liveLastRoute = null; liveDest = null;
+}
+function startLiveNav(o) {
+  stopLiveNav();
+  if (!missionMap || !navigator.geolocation) return;
+  liveDest = orderGps(o);
+  const hero = document.getElementById('tracking-hero');
+  if (hero && !document.getElementById('liveStrip')) {
+    hero.insertAdjacentHTML('beforeend', '<div class="live-strip" id="liveStrip"><span class="live-dot"></span><span id="liveText">Localisation en cours…</span></div>');
+  }
+  if (liveDest) liveClient = L.circleMarker([liveDest.lat, liveDest.lng], {radius:9, color:'#fff', weight:3, fillColor:'#24211F', fillOpacity:1}).addTo(missionMap).bindTooltip('Client');
+  liveWatch = navigator.geolocation.watchPosition(pos => onMyPos(pos), () => {
+    const t = document.getElementById('liveText'); if (t) t.textContent = 'Autorisez la localisation pour le suivi en direct';
+  }, {enableHighAccuracy:true, maximumAge:4000, timeout:15000});
+}
+function onMyPos(pos) {
+  if (!missionMap) return;
+  const me = {lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0)};
+  /* hors du Sénégal (émulateur, position simulée) : on n'affiche pas un trajet absurde */
+  if (me.lat < 12 || me.lat > 17 || me.lng < -18 || me.lng > -11) {
+    const bad = document.getElementById('liveText');
+    if (bad) bad.innerHTML = '<b>Position hors zone</b> · activez le GPS de votre téléphone';
+    if (liveMe) { missionMap.removeLayer(liveMe); liveMe = null; }
+    return;
+  }
+  if (!liveMe) liveMe = L.circleMarker([me.lat, me.lng], {radius:8, color:'#fff', weight:3, fillColor:'#FF8A4C', fillOpacity:1}).addTo(missionMap).bindTooltip('Vous');
+  else liveMe.setLatLng([me.lat, me.lng]);
+  const txt = document.getElementById('liveText');
+  if (liveDest) {
+    const km = haversine(me, liveDest);
+    if (txt) txt.innerHTML = km < 0.15 ? '<b>Vous êtes arrivé</b> · à quelques mètres du client'
+      : '<b>' + (km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1).replace('.', ',') + ' km') + '</b> du client · vous êtes suivi en direct';
+  } else if (txt) txt.innerHTML = '<b>Position active</b> · adresse du client sans GPS';
+  const now = Date.now();
+  if (now - liveLastPush > 20000) { liveLastPush = now; pushPos(pos); }
+  if (!liveLastRoute || haversine(me, liveLastRoute) > 0.25) { liveLastRoute = me; drawLiveRoute(me); }
+}
+async function drawLiveRoute(me) {
+  if (!missionMap || !liveDest || !navigator.onLine) return;
+  try {
+    const url = 'https://routing.openstreetmap.de/routed-car/route/v1/driving/' + me.lng + ',' + me.lat + ';' + liveDest.lng + ',' + liveDest.lat + '?overview=full&geometries=geojson';
+    const data = await mapFetch(url);
+    const route = data.routes && data.routes[0];
+    if (!route || !missionMap) return;
+    if (liveRoute) missionMap.removeLayer(liveRoute);
+    const pts = route.geometry.coordinates.map(p => [p[1], p[0]]);
+    liveRoute = L.polyline(pts, {color:'#FF8A4C', weight:6, opacity:.95, lineCap:'round'}).addTo(missionMap);
+    const km = (route.distance / 1000).toFixed(1).replace('.', ',');
+    const mins = Math.max(1, Math.round(route.duration / 60));
+    const d = document.getElementById('route-distance'); if (d) d.textContent = km + ' km';
+    const t = document.getElementById('route-duration'); if (t) t.textContent = mins + ' min';
+    const e = document.getElementById('route-eta'); if (e) e.textContent = new Date(Date.now() + mins * 60000).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    const p = L.latLngBounds(pts); if (p.isValid()) missionMap.fitBounds(p, {padding:[36, 36], maxZoom:16, animate:false});
+  } catch (e) {}
+}
+function closeTracking(){stopSharePos();stopLiveNav();trackingSeq++;trackingId=null;clearInterval(driverChatPoll);driverChatPoll=null;document.getElementById('mission-tracking').classList.remove('open');document.body.style.overflow='';if(missionMap){missionMap.remove();missionMap=null;routeGroup=null}}
 function refreshTracking(){const id=trackingId;loadOrders().then(()=>{if(id&&trackedOrder())openTracking(id)})}
 function mapMessage(title,text){document.getElementById('mission-map').classList.add('hidden');const f=document.getElementById('map-fallback');f.classList.remove('hidden');f.innerHTML=`<div><svg class="svg"><use href="#map"/></svg><b>${esc(title)}</b><p>${esc(text)}</p></div>`}
 async function mapFetch(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
@@ -164,6 +286,7 @@ async function loadMissionMap(o){
     let bounds=[[DEPOT.lat,DEPOT.lng],[destination.lat,destination.lng]],route=null;
     try{const url='https://routing.openstreetmap.de/routed-car/route/v1/driving/'+DEPOT.lng+','+DEPOT.lat+';'+destination.lng+','+destination.lat+'?overview=full&geometries=geojson';const data=await mapFetch(url);if(seq!==trackingSeq)return;route=data.routes&&data.routes[0];if(!route)throw new Error('Itinéraire introuvable');const points=route.geometry.coordinates.map(p=>[p[1],p[0]]);routeGroup.addLayer(L.polyline(points,{color:'#1264A3',weight:5,opacity:.85,lineCap:'round'}));bounds=points;document.getElementById('route-distance').textContent=(route.distance/1000).toFixed(1).replace('.',',')+' km';const mins=Math.max(1,Math.round(route.duration/60));document.getElementById('route-duration').textContent=mins+' min';document.getElementById('route-eta').textContent=new Date(Date.now()+mins*60000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});}catch(e){if(seq!==trackingSeq)return;routeGroup.addLayer(L.polyline(bounds,{color:'#19A7CE',weight:3,dashArray:'7 8'}));document.getElementById('route-distance').textContent='—';document.getElementById('route-duration').textContent='—';document.getElementById('route-eta').textContent='—'}
     missionMap.fitBounds(bounds,{padding:[32,32],maxZoom:16,animate:false});setTimeout(()=>{if(missionMap)missionMap.invalidateSize()},180);
+    setTimeout(()=>{if(seq===trackingSeq&&missionMap)startLiveNav(o)},400);
   }catch(e){if(seq!==trackingSeq||!trackingId)return;mapMessage('Itinéraire indisponible','Impossible de localiser cette adresse pour le moment. Utilisez le bouton Maps ou appelez le client.')}
 }
 let driverChatPoll=null,driverChatBusy=false;
