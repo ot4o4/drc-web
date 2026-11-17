@@ -37,6 +37,10 @@ header{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;paddin
 .avatar{background:#FFEDE2;color:#A8471A}
 #sharePos{display:flex;align-items:center;justify-content:center;gap:9px;min-height:52px;font-size:15px;font-weight:600;background:var(--yellow);color:#24211F;box-shadow:0 10px 22px -14px rgba(226,103,42,.9)}
 #sharePos svg{width:20px;height:20px;fill:currentColor;flex:none}
+#gmapsNav{display:flex;align-items:center;justify-content:center;gap:9px;min-height:52px;font-size:15px;font-weight:600;background:#24211F;color:#fff}
+#gmapsNav svg{width:20px;height:20px;fill:#FF8A4C;flex:none}
+#sharePos{background:#fff;color:#24211F;border:1.5px solid #FF8A4C;box-shadow:none}
+#sharePos svg{fill:#E2672A}
 .kv a{color:#A8471A;font-weight:700;text-decoration:none}
 .contact-buttons .btn{border:1px solid var(--line)}
 .contact-buttons .whatsapp{border-color:#CFE7D8}
@@ -118,6 +122,7 @@ header{background:var(--navy);box-shadow:0 6px 20px -12px rgba(0,0,0,.5)}
   <div class="tracking-content">
     <div class="tracking-hero" id="tracking-hero"></div>
     <div class="map-wrap"><div id="mission-map"></div><div id="map-fallback" class="map-fallback hidden"></div><div class="map-credit">Itinéraire indicatif · OpenStreetMap contributors</div></div>
+    <button class="btn gmaps" id="gmapsNav" data-track-action="maps" style="margin:0 14px 10px;width:calc(100% - 28px)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>Itinéraire Google Maps</span></button>
     <button class="btn secondary" id="sharePos" style="margin:0 14px 14px;width:calc(100% - 28px)" onclick="toggleSharePos()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg><span>Partager ma position au client</span></button>
     <div class="progress-card"><h3>Progression de la livraison</h3><div id="tracking-progress"></div></div>
     <div class="contact-driver" id="tracking-contact"></div>
@@ -176,7 +181,7 @@ const geoCache = {};
 function trackedOrder(){return orders.find(o=>String(o.id)===String(trackingId))}
 function orderAddress(o){const c=(o&&o.customer)||{};return String(c.address||c.zone||'').trim()}
 function statusLabel(s){return {confirmed:'À RÉCUPÉRER',preparing:'EN PRÉPARATION',paid:'PAYÉE',shipping:'EN COURS',delivered:'TERMINÉE'}[s]||'À RÉCUPÉRER'}
-function mapsUrl(o){const g=orderGps(o);if(g)return 'https://www.google.com/maps/dir/?api=1&destination='+g.lat+','+g.lng+'&travelmode=driving';const a=orderAddress(o);return a?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a+', Dakar, Sénégal'):''}
+function mapsUrl(o){const g=orderGps(o);if(g)return 'https://www.google.com/maps/dir/?api=1&destination='+g.lat+','+g.lng+'&travelmode=driving&dir_action=navigate';const a=orderAddress(o);return a?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a+', Dakar, Sénégal'):''}
 function customerPhone(o){const c=(o&&o.customer)||{};return String(c.phone||'').replace(/[^\d+]/g,'')}
 function openTracking(id){
   const o=orders.find(x=>String(x.id)===String(id));if(!o)return;
@@ -333,7 +338,7 @@ function callCustomer(id){const o=orders.find(x=>String(x.id)===String(id));if(!
 function openTrackedMaps(){const o=trackedOrder();if(!o)return;const url=mapsUrl(o);if(!url){toast('Adresse non renseignée');return}window.open(url,'_blank','noopener')}
 document.querySelector('.contact-buttons').addEventListener('click',e=>{const b=e.target.closest('button[data-track-action]');if(!b||b.disabled||!trackingId)return;if(b.dataset.trackAction==='message')messageCustomer(trackingId);if(b.dataset.trackAction==='sms')smsCustomer(trackingId);if(b.dataset.trackAction==='call')callCustomer(trackingId)});
 document.getElementById('tracking-action').addEventListener('click',e=>{const b=e.target.closest('button[data-status]');if(b&&trackingId)setStatus(trackingId,b.dataset.status)});
-document.querySelector('[data-track-action="maps"]').addEventListener('click',openTrackedMaps);
+document.querySelectorAll('[data-track-action="maps"]').forEach(b=>b.addEventListener('click',openTrackedMaps));
 async function setStatus(id,status){id=String(id);if(pendingStatus.has(id))return;statusSequence++;pendingStatus.add(id);renderOrders();try{const r=await api('/api/driver/orders/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({status})});if(!r.ok){toast('Échec de la mise à jour — réessayez');return}const o=orders.find(x=>String(x.id)===id);if(o)o.status=status;buzz([12,40,12]);toast(status==='shipping'?'Colis récupéré · bonne route':'Livraison confirmée');renderStats()}catch(e){toast('Serveur injoignable · statut inchangé')}finally{pendingStatus.delete(id);renderOrders();if(trackingId===id)openTracking(id)}}
 function switchTab(t){tabTouched=true;tab=t;['depot','shipping','done'].forEach(x=>{const b=document.getElementById('t-'+x);b.classList.toggle('on',x===t);b.setAttribute('aria-selected',x===t?'true':'false')});renderOrders()}
 document.getElementById('orders').addEventListener('click',e=>{const b=e.target.closest('button[data-action]');if(!b||b.disabled)return;if(b.dataset.action==='status')setStatus(b.dataset.id,b.dataset.status);else if(b.dataset.action==='track')openTracking(b.dataset.id);else if(b.dataset.action==='message')messageCustomer(b.dataset.id);else if(b.dataset.action==='call')callCustomer(b.dataset.id);else if(b.dataset.url)location.href=b.dataset.url});
