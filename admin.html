@@ -340,6 +340,12 @@ function payInfo(o){
   if (ps === 'refused') return {label:'Refusé', cls:'red', can:false, reason:o.payment_refusal_reason || ''};
   if (ps === 'cod_collected') return {label:'Espèces chez le livreur', cls:'amber', can:true, refuse:false, reason:'À récupérer auprès du livreur'};
   if (o.payment_method === 'cod') return {label:'À la livraison', cls:'grey', can:true, reason:''};
+  if (o.payment_claim) {
+    const pc = o.payment_claim;
+    return {label:'Client dit avoir payé', cls:'amber', can:true,
+      reason:[pc.pay_phone ? 'depuis ' + pc.pay_phone : '', pc.to ? 'vers ' + pc.to : '', pc.txn ? 'réf ' + pc.txn : ''].filter(Boolean).join(' · ')};
+  }
+  if (o.payment_review && o.payment_review.action === 'underpaid') return {label:'Montant insuffisant', cls:'red', can:true, reason:o.payment_review.reason || ''};
   return {label:'À vérifier', cls:'amber', can:true, reason:''};
 }
 function payCell(o){
@@ -432,6 +438,8 @@ function openOrder(id){
       (c.slot ? '<span>Créneau</span><b>' + esc(c.slot) + '</b>' : '') +
       '<span>Paiement</span><b>' + esc(payLabel) + ' — ' + esc(payStatus) + '</b>' +
       (c.pay_phone ? '<span>N° à débiter</span><b>' + esc(c.pay_phone) + '</b>' : '') +
+      (o.payment_claim ? '<span>Paiement déclaré</span><b>' + esc(fmtDate(o.payment_claim.at)) + (o.payment_claim.pay_phone ? ' · depuis ' + esc(o.payment_claim.pay_phone) : '') + (o.payment_claim.to ? ' · vers ' + esc(o.payment_claim.to) : '') + (o.payment_claim.txn ? ' · réf ' + esc(o.payment_claim.txn) : '') + '</b>' : '') +
+      (o.payment_txn ? '<span>Transaction</span><b>' + esc(o.payment_txn) + '</b>' : '') +
       (o.promo ? '<span>Code promo</span><b>' + esc(o.promo.code) + ' (−' + esc(o.promo.percent) + '%)</b>' : '') +
       (c.note ? '<span>Note client</span><b>' + esc(c.note) + '</b>' : '') +
       (o.driver ? '<span>Livreur</span><b>' + esc(o.driver.name || '') + (o.driver.phone ? ' · ' + esc(o.driver.phone) : '') + '</b>' : '') +
