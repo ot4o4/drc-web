@@ -192,7 +192,7 @@ function toggleSharePos(){
   if (sharePosT) { stopSharePos(); toast('Position partagée : arrêtée'); return; }
   if (!navigator.geolocation) { toast('Géolocalisation indisponible'); return; }
   navigator.geolocation.getCurrentPosition(p => { pushPos(p); toast('Le client voit votre position'); }, () => toast('Autorisez la localisation'), {enableHighAccuracy:true, timeout:12000});
-  sharePosT = setInterval(() => navigator.geolocation.getCurrentPosition(pushPos, () => {}, {enableHighAccuracy:true, timeout:12000, maximumAge:15000}), 20000);
+  sharePosT = setInterval(() => navigator.geolocation.getCurrentPosition(pushPos, () => {}, {enableHighAccuracy:true, timeout:12000, maximumAge:10000}), 10000);
   if (b) { b.textContent = 'Partage de position actif — toucher pour arrêter'; b.style.background = '#E4F6EC'; b.style.color = '#086B45'; }
 }
 function stopSharePos(){
@@ -244,7 +244,7 @@ function onMyPos(pos) {
       : '<b>' + (km < 1 ? Math.round(km * 1000) + ' m' : km.toFixed(1).replace('.', ',') + ' km') + '</b> du client · vous êtes suivi en direct';
   } else if (txt) txt.innerHTML = '<b>Position active</b> · adresse du client sans GPS';
   const now = Date.now();
-  if (now - liveLastPush > 20000) { liveLastPush = now; pushPos(pos); }
+  if (now - liveLastPush > 10000) { liveLastPush = now; pushPos(pos); }
   if (!liveLastRoute || haversine(me, liveLastRoute) > 0.25) { liveLastRoute = me; drawLiveRoute(me); }
 }
 async function drawLiveRoute(me) {
