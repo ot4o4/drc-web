@@ -41,6 +41,7 @@ header{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;paddin
   <div class="tracking-content">
     <div class="tracking-hero" id="tracking-hero"></div>
     <div class="map-wrap"><div id="mission-map"></div><div id="map-fallback" class="map-fallback hidden"></div><div class="map-credit">Itinéraire indicatif · OpenStreetMap contributors</div></div>
+    <button class="btn secondary" id="sharePos" style="margin:0 14px 14px;width:calc(100% - 28px)" onclick="toggleSharePos()">Partager ma position au client</button>
     <div class="progress-card"><h3>Progression de la livraison</h3><div id="tracking-progress"></div></div>
     <div class="contact-driver" id="tracking-contact"></div>
     <div class="contact-buttons">
@@ -119,7 +120,30 @@ function openTracking(id){
   const openSeq=trackingSeq;
   setTimeout(()=>{if(openSeq===trackingSeq&&trackingId===String(id))loadMissionMap(o)},80);
 }
-function closeTracking(){trackingSeq++;trackingId=null;clearInterval(driverChatPoll);driverChatPoll=null;document.getElementById('mission-tracking').classList.remove('open');document.body.style.overflow='';if(missionMap){missionMap.remove();missionMap=null;routeGroup=null}}
+let sharePosT = null, sharePosWatch = null;
+async function pushPos(pos){
+  if (!trackingId) return;
+  try {
+    await api('/api/orders/' + encodeURIComponent(trackingId) + '/driver-position', {
+      method: 'POST',
+      body: JSON.stringify({lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0)})
+    });
+  } catch (e) {}
+}
+function toggleSharePos(){
+  const b = document.getElementById('sharePos');
+  if (sharePosT) { stopSharePos(); toast('Position partagée : arrêtée'); return; }
+  if (!navigator.geolocation) { toast('Géolocalisation indisponible'); return; }
+  navigator.geolocation.getCurrentPosition(p => { pushPos(p); toast('Le client voit votre position'); }, () => toast('Autorisez la localisation'), {enableHighAccuracy:true, timeout:12000});
+  sharePosT = setInterval(() => navigator.geolocation.getCurrentPosition(pushPos, () => {}, {enableHighAccuracy:true, timeout:12000, maximumAge:15000}), 20000);
+  if (b) { b.textContent = 'Partage de position actif — toucher pour arrêter'; b.style.background = '#E4F6EC'; b.style.color = '#086B45'; }
+}
+function stopSharePos(){
+  if (sharePosT) { clearInterval(sharePosT); sharePosT = null; }
+  const b = document.getElementById('sharePos');
+  if (b) { b.textContent = 'Partager ma position au client'; b.style.background = ''; b.style.color = ''; }
+}
+function closeTracking(){stopSharePos();trackingSeq++;trackingId=null;clearInterval(driverChatPoll);driverChatPoll=null;document.getElementById('mission-tracking').classList.remove('open');document.body.style.overflow='';if(missionMap){missionMap.remove();missionMap=null;routeGroup=null}}
 function refreshTracking(){const id=trackingId;loadOrders().then(()=>{if(id&&trackedOrder())openTracking(id)})}
 function mapMessage(title,text){document.getElementById('mission-map').classList.add('hidden');const f=document.getElementById('map-fallback');f.classList.remove('hidden');f.innerHTML=`<div><svg class="svg"><use href="#map"/></svg><b>${esc(title)}</b><p>${esc(text)}</p></div>`}
 async function mapFetch(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(t)}}
