@@ -402,12 +402,16 @@ migrateToken().then(()=>{if(token){enter()}else{showLogin()}});setTimeout(()=>do
     if (from === to || to < 10) return;
     var pre = txt.slice(0, m.index), post = txt.slice(m.index + m[0].length), t0 = performance.now(), dur = 700;
     function fmt(v){ return Math.round(v).toLocaleString('fr-FR').replace(/\u202f/g, '\u202f'); }
-    el.__busy = true;
-    (function step(t){
-      var p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = pre + fmt(from + (to - from) * e) + post;
-      if (p < 1) requestAnimationFrame(step); else { el.textContent = txt; el.__busy = false; }
-    })(t0);
+    el.__busy = true; el.__last = txt;
+    (function step(){
+      var t = performance.now();
+      /* l'app a réécrit le montant entre-temps : on s'efface, sa valeur fait foi */
+      if (el.textContent !== el.__last) { el.__busy = false; el.dataset.mv = ''; return; }
+      var p = Math.max(0, Math.min(1, (t - t0) / dur)), e = 1 - Math.pow(1 - p, 3);
+      el.__last = p < 1 ? pre + fmt(from + (to - from) * e) + post : txt;
+      el.textContent = el.__last;
+      if (p < 1) requestAnimationFrame(step); else el.__busy = false;
+    })();
   }
   var gseen = new Set();
   function scan(root){
