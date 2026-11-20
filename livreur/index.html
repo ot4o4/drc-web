@@ -144,7 +144,7 @@ header{background:var(--navy);box-shadow:0 6px 20px -12px rgba(0,0,0,.5)}
 <div id="toast" role="status"></div>
 <script src="/livreur/leaflet/leaflet.js"></script>
 <script>
-const DEFAULT_API = 'https://drc-api-dj8t.onrender.com';
+const DEFAULT_API = 'https://hermes11.vps.webdock.cloud/drc-api';
 function validServer(v){return /^https:\/\/[^\s]+$/.test(v)||/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(v)}
 const API = () => DEFAULT_API;
 let token = localStorage.getItem('drc_driver') || '';

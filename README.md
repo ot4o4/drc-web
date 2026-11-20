@@ -22,11 +22,11 @@ arrivent dans la **même base**, sur le même serveur.
 ## Serveur (API)
 
 Le site appelle l'API Node déjà déployée :
-`https://drc-api-dj8t.onrender.com` (dépôt `ot4o4/drc-api`).
+`https://hermes11.vps.webdock.cloud/drc-api` (dépôt `ot4o4/drc-api`).
 L'adresse par défaut est dans `index.html` :
 
 ```js
-const API_BASE = (localStorage.getItem('drc_api') || 'https://drc-api-dj8t.onrender.com')
+const API_BASE = (localStorage.getItem('drc_api') || 'https://hermes11.vps.webdock.cloud/drc-api')
 ```
 
 CORS est ouvert (`Access-Control-Allow-Origin: *`), le site peut donc être
